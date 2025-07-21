@@ -8,12 +8,6 @@ import math
 from .constants import *
 from .helper import *
 
-class GameState(Enum):
-    GAME_OVER = 0
-    MATH = 1
-    STORY = 2
-    NONE = 3
-
 class SwitchRunnerGame():
     def __init__(self):
         self.setup_background();
@@ -74,7 +68,10 @@ class SwitchRunnerGame():
         self.spawn_interval = 90  # Less frequent Obstacles
 
     def setup_state(self):
-        self.state = GameState.STORY
+        self.math_mode = False;
+        self.game_over = False;
+        self.story_mode = True;
+
         self.powerups = []  # List of (x, lane, type)
         self.invincible = False
         self.invincible_timer = 0
@@ -130,8 +127,8 @@ class SwitchRunnerGame():
         self.spikes_frames = [spikes_sheet.subsurface(pygame.Rect(i * spikes_width, 0, spikes_width, spikes_height)) for i in range(SPIKES_FRAMES)]
 
     def math_encounter_trigger(self):
-        if self.state == GameState.NONE and self.now > self.next_math_time:
-            self.state = GameState.MATH;
+        if not self.story_mode and not self.math_mode and not self.game_over and self.now > self.next_math_time:
+            self.math_mode = True;
             # Generate math question
             a, b = random.randint(2, 12), random.randint(2, 12)
             op = random.choice(['+', '-', '*'])
@@ -162,13 +159,13 @@ class SwitchRunnerGame():
         while running:
             self.now = time.time()
             # Handle invincibility timer
-            if self.invincible and self.state == GameState.NONE:
+            if self.invincible and not self.story_mode and not self.math_mode:
                 if time.time() > self.invincible_timer:
                     self.invincible = False
 
             self.math_encounter_trigger();
 
-            if self.state == GameState.MATH:
+            if self.math_mode:
                 screen.fill((30, 30, 40))
                 # Draw entity with rounded corners at top center
                 blit_rounded(screen, self.entity_img, (WIDTH//2 - 110, 60), radius=15)
@@ -208,8 +205,7 @@ class SwitchRunnerGame():
                             pygame.display.flip()
                             pygame.time.delay(int(MATH_LAUGH_DURATION * 1000))
                             # End math mode, reset timer
-                            # math_mode = False
-                            self.state = GameState.NONE
+                            self.math_mode = False
                             self.next_math_time = time.time() + random.choice(MATH_INTERVALS)
                             continue
                     else:
@@ -262,10 +258,10 @@ class SwitchRunnerGame():
                             self.spawn_interval = max(20, int(self.spawn_interval / self.math_intensity_mult))
                     elif event.type == pygame.KEYDOWN and self.math_feedback and 'Wrong' not in self.math_feedback and time.time() > self.math_feedback_timer:
                         # End math mode, reset timer
-                        self.state = GameState.NONE
+                        self.math_mode = False
                         self.next_math_time = time.time() + random.choice(MATH_INTERVALS)
                 continue
-            if self.state == GameState.STORY:
+            if self.story_mode:
                 screen.fill((30, 30, 40))
                 # Draw player and entity images
                 screen.blit(self.player_img, (80, HEIGHT//2 - 110))
@@ -326,7 +322,7 @@ class SwitchRunnerGame():
                                 choice_selected = 1
                             elif event.key in (pygame.K_SPACE, pygame.K_RETURN):
                                 story_choice = 'yes' if self.choice_selected == 0 else 'no'
-                                story_mode = False
+                                self.story_mode = False
                                 # If 'no', show evil laugh for a moment before starting game
                                 if story_choice == 'no':
                                     laugh_font = pygame.font.SysFont('arial', 60, bold=True)
@@ -349,14 +345,14 @@ class SwitchRunnerGame():
                 screen.blit(self.bg_images[i], (x1, 0))
                 screen.blit(self.bg_images[i], (x2, 0))
             # Show warning 5 seconds before entity appears
-            if self.state == GameState.NONE:
+            if not self.story_mode and not self.math_mode and not self.game_over:
                 time_to_entity = self.next_math_time - self.now
                 if 0 < time_to_entity <= 5:
                     warn_font = pygame.font.SysFont('arial', 36, bold=True)
                     warn_text = warn_font.render('Warning: The Entity will appear soon!', True, (255, 99, 71))
                     screen.blit(warn_text, (WIDTH//2 - warn_text.get_width()//2, 20))
             # Ball horizontal movement
-            if self.state != GameState.GAME_OVER:
+            if not self.game_over:
                 self.ball_x += BALL_SPEED
                 if self.ball_x > ANCHOR_X:
                     # Keep the ball at anchor, move obstacles left instead
@@ -471,7 +467,7 @@ class SwitchRunnerGame():
                 else:
                     screen.blit(self.life_img, (x - 30, y - 30))
             # Game over
-            if self.state == GameState.GAME_OVER:
+            if self.game_over:
                 # If death animation is playing, wait for it to finish
                 if self.death_anim_playing:
                     pygame.display.flip()
@@ -539,7 +535,7 @@ class SwitchRunnerGame():
                                     self.death_anim_playing = True
                                     self.death_anim_index = 0
                                     self.death_anim_timer = 0
-                                    self.state = GameState.GAME_OVER
+                                    self.game_over = True
                                 break
                 # Pickable collision
                 for pick in pickables[:]:
@@ -578,13 +574,13 @@ class SwitchRunnerGame():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.KEYDOWN and self.state != GameState.GAME_OVER:
+                elif event.type == pygame.KEYDOWN and not self.game_over:
                     if event.key == pygame.K_ESCAPE:
                         running = False
                     if event.key == pygame.K_SPACE and self.ball_glide == 0:
                         self.target_lane = 1 - self.ball_lane
                         self.ball_glide = GLIDE_FRAMES
-                elif event.type == pygame.MOUSEBUTTONDOWN and self.state != GameState.GAME_OVER and self.ball_glide == 0:
+                elif event.type == pygame.MOUSEBUTTONDOWN and not self.game_over and self.ball_glide == 0:
                     self.target_lane = 1 - self.ball_lane
                     self.ball_glide = GLIDE_FRAMES
             pygame.display.flip()
