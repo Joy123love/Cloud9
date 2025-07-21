@@ -1,0 +1,13 @@
+[project]
+name = "cloud-9"
+version = "0.1.0"
+dependencies = [
+  "PyQt6",
+  "PyQt6-QScintilla"
+  "pygame"
+]
+
+extend-exclude = [
+    "*.pyc",
+    "__pycache__",
+]
