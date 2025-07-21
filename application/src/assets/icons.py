@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from PyQt6.QtGui import QIcon
 
+from utils import get_project_root
+
 @dataclass
 class Icons:
     calculate : QIcon
@@ -22,7 +24,7 @@ class Icons:
 
 def get_default_icons() -> Icons:
     def get_path(name : str):
-        return "./assets/icons/" + name;
+        return f"{get_project_root()}/src/assets/icons/" + name;
 
     return Icons(
         calculate=QIcon(get_path("calculate.svg")),

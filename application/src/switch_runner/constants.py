@@ -3,8 +3,10 @@ import os
 import time
 import math
 
+from src.utils import get_project_root
+
 def get_assets_path(name : str) -> str:
-    return f"./assets/games/switch_runner/{name}";
+    return f"{get_project_root()}/src/assets/games/switch_runner/{name}";
 # Fixed window size
 WIDTH, HEIGHT = 1280, 720
 PLATFORM_Y_TOP = HEIGHT // 6
