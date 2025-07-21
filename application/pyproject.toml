@@ -3,8 +3,9 @@ name = "cloud-9"
 version = "0.1.0"
 dependencies = [
   "PyQt6",
-  "PyQt6-QScintilla"
-  "pygame"
+  "PyQt6-QScintilla",
+  "pygame",
+  "requests"
 ]
 
 extend-exclude = [

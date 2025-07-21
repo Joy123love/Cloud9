@@ -13,6 +13,11 @@ class Icons:
     stories : QIcon
     delete : QIcon
     add : QIcon
+    cancel : QIcon
+    export_notes : QIcon
+    facebook : QIcon
+    google : QIcon
+    linkedin : QIcon
 
 
 def get_default_icons() -> Icons:
@@ -30,6 +35,11 @@ def get_default_icons() -> Icons:
         stories=QIcon(get_path("stories.svg")),
         delete=QIcon(get_path("delete.svg")),
         add=QIcon(get_path("add.svg")),
+        cancel=QIcon(get_path("cancel.svg")),
+        export_notes=QIcon(get_path("export_notes.svg")),
+        facebook=QIcon(get_path("facebook.png")),
+        google=QIcon(get_path("google.png")),
+        linkedin=QIcon(get_path("linkedin.png")),
     );
 
 icons : Icons = get_default_icons();

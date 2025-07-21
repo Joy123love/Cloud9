@@ -7,8 +7,9 @@ from PyQt6.QtGui import QCursor, QIcon
 import requests
 import os
 
-from styles import STYLES
-from login_window import LoginWindow
+from .styles import STYLES
+from .login_window import LoginWindow
+from assets.icons import icons
 
 class SignUpWindow(QWidget):
     def __init__(self):
@@ -69,10 +70,8 @@ class SignUpWindow(QWidget):
         close_btn.setFixedSize(30, 30)
         close_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         close_btn.setStyleSheet("border: none;")
-        icon_path = os.path.join(os.path.dirname(__file__), "IMAGES", "cross.png")
-        if os.path.exists(icon_path):
-            close_btn.setIcon(QIcon(icon_path))
-            close_btn.setIconSize(QSize(20, 20))
+        close_btn.setIcon(QIcon(icons.cancel))
+        close_btn.setIconSize(QSize(20, 20))
         close_btn.clicked.connect(self.close)
         top_bar.addWidget(close_btn)
         right_layout.addLayout(top_bar)

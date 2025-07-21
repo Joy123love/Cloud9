@@ -4,9 +4,10 @@ from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtWidgets import QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit
 import os
 import requests
-from dashboard import DashboardWindow
+# from dashboard import DashboardWindow
 
-from styles import STYLES
+from assets.icons import icons
+from .styles import STYLES
 
 
 class LoginWindow(QWidget):
@@ -71,18 +72,14 @@ class LoginWindow(QWidget):
         top_bar.setContentsMargins(0, 0, 0, 0)
         top_bar.addStretch()
 
-        icon_path = os.path.join(os.path.dirname(__file__), "IMAGES", "cross.png")
 
         close_btn = QPushButton()
         close_btn.setFixedSize(30, 30)
         close_btn.setCursor(QtGui.QCursor(Qt.CursorShape.PointingHandCursor))
         close_btn.setStyleSheet("border: none;")
 
-        if os.path.exists(icon_path):
-            close_btn.setIcon(QIcon(icon_path))
-            close_btn.setIconSize(QSize(20, 20))
-        else:
-            print("❌ Image not found:", icon_path)
+        close_btn.setIcon(QIcon(icons.cancel))
+        close_btn.setIconSize(QSize(20, 20))
 
         close_btn.clicked.connect(self.close)
         top_bar.addWidget(close_btn)
@@ -118,7 +115,6 @@ class LoginWindow(QWidget):
         layout.setColumnStretch(1, 3)
 
     def open_signup(self):
-
         from signup_window import SignUpWindow
         self.signup_window = SignUpWindow()
         self.signup_window.show()
@@ -140,9 +136,9 @@ class LoginWindow(QWidget):
             )
             if response.status_code == 200:
                 QtWidgets.QMessageBox.information(self, "Success", "Logged in successfully!")
-                self.dashboard = DashboardWindow()
-                self.dashboard.show()
-                self.close()
+                # self.dashboard = DashboardWindow()
+                # self.dashboard.show()
+                # self.close()
 
             else:
                 msg = response.json().get('message', 'Login failed.')
