@@ -11,10 +11,10 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     # TODO Routes - For now comment in the appropriate screens;
     # window = CreateCodingGameScreen();
-    window = PlayCodingGameScreen();
+    # window = PlayCodingGameScreen();
     # window = GuessQuizScreen();
     # window = CreateQuizScreen()
-    # window = SwitchRunnerScreen();
+    window = SwitchRunnerScreen();
 
     window.setPalette(get_palette_from_theme(theme));
     window.show()

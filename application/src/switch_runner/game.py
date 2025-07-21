@@ -1,203 +1,139 @@
+from enum import Enum
 import pygame
 import random
 import os
 import time
 import math
 
-# Fixed window size
-WIDTH, HEIGHT = 1280, 720
-PLATFORM_Y_TOP = HEIGHT // 6
-PLATFORM_Y_BOTTOM = 5 * HEIGHT // 6
-PLATFORM_THICKNESS = 12
-BALL_RADIUS = 36
-BALL_START_X = 220
-BALL_SPEED = 7  # Increased horizontal speed
-OBSTACLE_WIDTH = 56
-OBSTACLE_HEIGHT = 84
-OBSTACLE_SPEED = 4
+from .constants import *
+from .helper import *
 
-LIVES = 3
-FPS = 60
-GLIDE_FRAMES = 20  # Number of frames for glide animation
+class GameState(Enum):
+    GAME_OVER = 0
+    MATH = 1
+    STORY = 2
 
-def get_assets_path(name : str) -> str:
-    return f"./assets/games/switch_runner/{name}";
+class Game():
+    def __init__(self):
+        pass
+    
+    def setup_background(self) :
+        self.bg_images = []
+        for layer in BG_LAYERS:
+            img = pygame.image.load(BG_PATH + layer['file']).convert_alpha()
+            img = pygame.transform.scale(img, (WIDTH, HEIGHT))
+            self.bg_images.append(img)
 
-# Parallax background settings
-BG_ROOT = get_assets_path("backgrounds/")
-CLOUD_FOLDERS = [f'Clouds{i}/' for i in range(1, 9)]
-BG_FOLDER = random.choice(CLOUD_FOLDERS)
-BG_PATH = os.path.join(BG_ROOT, BG_FOLDER)
-BG_LAYERS = [
-    {'file': '1.png', 'speed': 0.2},
-    {'file': '2.png', 'speed': 0.4},
-    {'file': '3.png', 'speed': 0.7},
-    {'file': '4.png', 'speed': 1.0},
-]
+        self.bg_offsets = [0.0 for _ in BG_LAYERS]
+
+    def setup_character(self):
+        character_sheet = pygame.image.load(CHARACTER_SHEET_PATH).convert_alpha()
+        CHARACTER_WIDTH = character_sheet.get_width() // CHARACTER_FRAMES
+        CHARACTER_HEIGHT = character_sheet.get_height()
+        self.character_frames = [character_sheet.subsurface(pygame.Rect(i * CHARACTER_WIDTH, 0, CHARACTER_WIDTH, CHARACTER_HEIGHT)) for i in range(CHARACTER_FRAMES)]
+        self.character_anim_index = 0
+        self.character_anim_timer = 0
+
+        self.character_flipped = False
+        self.character_visible = True
+
+    def setup_hurt(self):
+        hurt_sheet = pygame.image.load(HURT_SHEET_PATH).convert_alpha()
+        hurt_width = hurt_sheet.get_width() // HURT_FRAMES
+        hurt_height = hurt_sheet.get_height()
+        self.hurt_frames = [hurt_sheet.subsurface(pygame.Rect(i * hurt_width, 0, hurt_width, hurt_height)) for i in range(HURT_FRAMES)]
+        self.hurt_anim_index = 0
+        self.hurt_anim_timer = 0
+        self.is_hurt = False
+        self.hurt_anim_playing = 0  # frames left
+
+    def setup_death(self):
+        death_sheet = pygame.image.load(DEATH_SHEET_PATH).convert_alpha()
+        death_width = death_sheet.get_width() // DEATH_FRAMES
+        death_height = death_sheet.get_height()
+        self.death_frames = [death_sheet.subsurface(pygame.Rect(i * death_width, 0, death_width, death_height)) for i in range(DEATH_FRAMES)]
+        self.death_anim_index = 0
+        self.death_anim_timer = 0
+        self.death_anim_playing = False
+
+    def setup_obstacles(self):
+        self.obstacles = []
+        self.pickables = []  # List of (x, lane, anim_index, anim_timer)
+        self.frame_count = 0
+        self.spawn_interval = 90  # Less frequent Obstacles
+
+    def setup_state(self):
+        self.state = GameState.STORY
+        self.powerups = []  # List of (x, lane, type)
+        self.invincible = False
+        self.invincible_timer = 0
+        self.story_dialogue = STARTING_DIALOGUE
+
+    def setup_ball_state(self):
+        self.xp = 0  # Player XP
+        self.target_lane = 1  # Start at bottom platform
+        self.ball_lane = 1
+        self.ball_angle = 0
+        self.lives = LIVES
+        self.ball_glide = 0  # 0 if not gliding, >0 if gliding
+        self.ball_y = PLATFORM_Y_BOTTOM - BALL_RADIUS - PLATFORM_THICKNESS // 2
+        self.ball_x = BALL_START_X
+
+    def setup_maths(self):
+        self.next_math_time = time.time() + random.choice(MATH_INTERVALS)
+        self.math_question = None
+        self.math_options = []
+        self.math_correct_index = 0
+        self.math_selected = 0
+        self.math_feedback = ''
+        self.math_feedback_timer = 0
+        self.math_intensity_mult = 1.0
+    
+    def setup_entities(self):
+        player_img = pygame.image.load(PLAYER_IMAGE_PATH).convert_alpha()
+        self.player_img = pygame.transform.scale(player_img, (220, 220))
+        entity_img = pygame.image.load(ENTITY_IMAGE_PATH).convert_alpha()
+        self.entity_img = pygame.transform.scale(entity_img, (220, 300))
+        bubble_img = pygame.image.load(BUBBLE_PATH).convert_alpha()
+        self.bubble_img = pygame.transform.scale(bubble_img, (POWERUP_RADIUS * 2, POWERUP_RADIUS * 2))
+        life_img = pygame.image.load(LIFE_PATH).convert_alpha()
+        self.life_img = pygame.transform.scale(life_img, (60, 60))
+
+    def setup_story(self):
+        self.story_index = 0
+        self.story_choice = None  # None, 'yes', or 'no'
+        self.choice_selected = 0  # 0 for Yes, 1 for No
+
+    def setup_xp_coin(self):
+        self.xp_coin_images = []
+        for i in range(1, XP_COIN_FRAMES + 1):
+            img_path = os.path.join(XP_COIN_PATH, f'Coin_{i:02d}.png')
+            img = pygame.image.load(img_path).convert_alpha()
+            img = pygame.transform.scale(img, (PICKABLE_RADIUS * 2, PICKABLE_RADIUS * 2))
+            self.xp_coin_images.append(img)
+
+    def setup_spikes(self):
+        spikes_sheet = pygame.image.load(SPIKES_PATH).convert_alpha()
+        spikes_width = spikes_sheet.get_width() // SPIKES_FRAMES
+        spikes_height = spikes_sheet.get_height()
+        self.spikes_frames = [spikes_sheet.subsurface(pygame.Rect(i * spikes_width, 0, spikes_width, spikes_height)) for i in range(SPIKES_FRAMES)]
+
+    def setup_assets(self):
+        self.setup_background();
+        self.setup_character();
+        self.setup_death();
+        self.setup_hurt();
+        self.setup_ball_state();
+        self.setup_obstacles();
+        self.setup_maths();
+        self.setup_entities();
+        self.setup_ball_state();
+        self.setup_story();
+
 
 def run(screen):
-    SPAWN_INTERVAL = 90  # Less frequent obstacles
     clock = pygame.time.Clock()
     font = pygame.font.SysFont('arial', 44, bold=True)
-
-# Load parallax background layers
-    bg_images = []
-    for layer in BG_LAYERS:
-        img = pygame.image.load(BG_PATH + layer['file']).convert_alpha()
-        img = pygame.transform.scale(img, (WIDTH, HEIGHT))
-        bg_images.append(img)
-
-    bg_offsets = [0.0 for _ in BG_LAYERS]
-
-    CHARACTER_SHEET_PATH = get_assets_path("characters/animations/dude/Dude_Monster_Run_6.png")
-    CHARACTER_FRAMES = 6
-    character_sheet = pygame.image.load(CHARACTER_SHEET_PATH).convert_alpha()
-    CHARACTER_WIDTH = character_sheet.get_width() // CHARACTER_FRAMES
-    CHARACTER_HEIGHT = character_sheet.get_height()
-    character_frames = [character_sheet.subsurface(pygame.Rect(i * CHARACTER_WIDTH, 0, CHARACTER_WIDTH, CHARACTER_HEIGHT)) for i in range(CHARACTER_FRAMES)]
-    character_anim_index = 0
-    character_anim_timer = 0
-    CHARACTER_ANIM_SPEED = 4  # Lower is faster
-    character_flipped = False
-
-# Hurt animation
-    HURT_SHEET_PATH = get_assets_path("characters/animations/dude/Dude_Monster_Hurt_4.png")
-    HURT_FRAMES = 4
-    hurt_sheet = pygame.image.load(HURT_SHEET_PATH).convert_alpha()
-    hurt_width = hurt_sheet.get_width() // HURT_FRAMES
-    hurt_height = hurt_sheet.get_height()
-    hurt_frames = [hurt_sheet.subsurface(pygame.Rect(i * hurt_width, 0, hurt_width, hurt_height)) for i in range(HURT_FRAMES)]
-    hurt_anim_index = 0
-    hurt_anim_timer = 0
-    HURT_ANIM_SPEED = 6
-    is_hurt = False
-    hurt_anim_playing = 0  # frames left
-
-# Death animation
-    DEATH_SHEET_PATH = get_assets_path("characters/animations/dude/Dude_Monster_Death_8.png")
-    DEATH_FRAMES = 8
-    death_sheet = pygame.image.load(DEATH_SHEET_PATH).convert_alpha()
-    death_width = death_sheet.get_width() // DEATH_FRAMES
-    death_height = death_sheet.get_height()
-    death_frames = [death_sheet.subsurface(pygame.Rect(i * death_width, 0, death_width, death_height)) for i in range(DEATH_FRAMES)]
-    death_anim_index = 0
-    death_anim_timer = 0
-    DEATH_ANIM_SPEED = 6
-    death_anim_playing = False
-    character_visible = True
-
-# Ball state
-    xp = 0  # Player XP
-    target_lane = 1  # Start at bottom platform
-    ball_lane = 1
-    ball_angle = 0
-    lives = LIVES
-    ball_glide = 0  # 0 if not gliding, >0 if gliding
-    ball_y = PLATFORM_Y_BOTTOM - BALL_RADIUS - PLATFORM_THICKNESS // 2
-    ball_x = BALL_START_X
-    ANCHOR_X = int(WIDTH * 0.4)  # Ball stays at 40% of the screen
-
-# Obstacles: list of (x, lane, frame_index)
-    obstacles = []
-    pickables = []  # List of (x, lane, anim_index, anim_timer)
-    PICKABLE_RADIUS = 24
-    PICKABLE_COLOR = (80, 220, 120)
-    PICKABLE_SPAWN_INTERVAL = SPAWN_INTERVAL * 3  # Less frequent than obstacles
-    frame_count = 0
-    game_over = False
-
-# Load player and entity images for story/dialogue
-    PLAYER_IMAGE_PATH = get_assets_path("characters/select/Dude_Monster.png")
-    ENTITY_IMAGE_PATH = get_assets_path("characters/entity/download (1).jpeg")
-    player_img = pygame.image.load(PLAYER_IMAGE_PATH).convert_alpha()
-    entity_img = pygame.image.load(ENTITY_IMAGE_PATH).convert_alpha()
-    player_img = pygame.transform.scale(player_img, (220, 220))
-    entity_img = pygame.transform.scale(entity_img, (220, 300))
-
-# Story/dialogue sequence
-    story_dialogue = [
-        ("entity", "I have kidnapped Ursula and I will not bring her back."),
-        ("player", "What, who are you?"),
-        ("entity", "I am, the Entity."),
-        ("player", "Give back Ursula right now."),
-        ("entity", "I will if you play a little game with me. Answer this question, Will you play the game or not?")
-    ]
-    story_mode = True
-    story_index = 0
-    story_choice = None  # None, 'yes', or 'no'
-    choice_selected = 0  # 0 for Yes, 1 for No
-    SPAWN_INTERVAL_SLOW = 90
-    SPAWN_INTERVAL_FAST = 45
-
-# Utility function to draw an image with rounded corners
-    def blit_rounded(surface, image, pos, radius=40):
-        size = image.get_size()
-        mask = pygame.Surface(size, pygame.SRCALPHA)
-        pygame.draw.rect(mask, (255,255,255,255), (0,0,*size), border_radius=radius)
-        img_copy = image.copy()
-        img_copy.blit(mask, (0,0), special_flags=pygame.BLEND_RGBA_MULT)
-        surface.blit(img_copy, pos)
-
-# Utility to draw a transparent bubble over the player when invincible
-    def blit_transparent_bubble(surface, bubble_img, center, scale=2.2, alpha=140):
-        # Scale bubble
-        size = int(BALL_RADIUS * 2 * scale)
-        bubble = pygame.transform.smoothscale(bubble_img, (size, size)).copy()
-        bubble.set_alpha(alpha)
-        x = center[0] - size // 2
-        y = center[1] - size // 2
-        surface.blit(bubble, (x, y))
-
-# Powerup settings
-    POWERUP_RADIUS = 28
-    POWERUP_COLOR = (255, 215, 0)
-    POWERUP_TYPE_INVINCIBLE = 'invincible'
-    POWERUP_TYPE_HEART = 'heart'
-    powerups = []  # List of (x, lane, type)
-
-# Invincibility state
-    invincible = False
-    invincible_timer = 0
-
-# Math encounter settings
-    MATH_INTERVALS = [15, 17, 21, 29, 33, 46, 54, 67]
-    next_math_time = time.time() + random.choice(MATH_INTERVALS)
-    math_mode = False
-    math_question = None
-    math_options = []
-    math_correct_index = 0
-    math_selected = 0
-    math_feedback = ''
-    math_feedback_timer = 0
-    math_intensity_mult = 1.0
-    MATH_LAUGH_DURATION = 1.2
-
-# XP Coin Animation
-    XP_COIN_FRAMES = 6
-    XP_COIN_PATH = get_assets_path("objects/xp_coin")
-    xp_coin_images = []
-    for i in range(1, XP_COIN_FRAMES + 1):
-        img_path = os.path.join(XP_COIN_PATH, f'Coin_{i:02d}.png')
-        img = pygame.image.load(img_path).convert_alpha()
-        img = pygame.transform.scale(img, (PICKABLE_RADIUS * 2, PICKABLE_RADIUS * 2))
-        xp_coin_images.append(img)
-    PICKABLE_ANIM_SPEED = 6  # frames per animation step
-
-# Powerup and Life Images
-    BUBBLE_PATH = get_assets_path("objects/Bubble.png")
-    LIFE_PATH = get_assets_path("objects/Life.png")
-    bubble_img = pygame.image.load(BUBBLE_PATH).convert_alpha()
-    bubble_img = pygame.transform.scale(bubble_img, (POWERUP_RADIUS * 2, POWERUP_RADIUS * 2))
-    life_img = pygame.image.load(LIFE_PATH).convert_alpha()
-    life_img = pygame.transform.scale(life_img, (60, 60))
-
-# Spikes obstacle sprite sheet
-    SPIKES_PATH = get_assets_path("objects/Spikes.png")
-    SPIKES_FRAMES = 4
-    spikes_sheet = pygame.image.load(SPIKES_PATH).convert_alpha()
-    spikes_width = spikes_sheet.get_width() // SPIKES_FRAMES
-    spikes_height = spikes_sheet.get_height()
-    spikes_frames = [spikes_sheet.subsurface(pygame.Rect(i * spikes_width, 0, spikes_width, spikes_height)) for i in range(SPIKES_FRAMES)]
 
     running = True
     while running:
@@ -229,6 +165,7 @@ def run(screen):
             math_selected = 0
             math_feedback = ''
             math_feedback_timer = 0
+
         if math_mode:
             screen.fill((30, 30, 40))
             # Draw entity with rounded corners at top center
