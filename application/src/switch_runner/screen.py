@@ -4,7 +4,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QWindow
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QHBoxLayout
 
-from .game import HEIGHT, WIDTH, run
+from .game import HEIGHT, WIDTH, SwitchRunnerGame
 
 
 class SwitchRunnerScreen(QMainWindow):
@@ -34,4 +34,5 @@ class SwitchRunnerScreen(QMainWindow):
         central_widget = QWidget(self)
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-        run(self.pygame_surface);
+        game = SwitchRunnerGame();
+        game.run(self.pygame_surface);

@@ -1,6 +1,6 @@
 import pygame
 
-from src.switch_runner.constants import BALL_RADIUS
+from switch_runner.constants import BALL_RADIUS
 
 def blit_rounded(surface, image, pos, radius=40):
     size = image.get_size()
