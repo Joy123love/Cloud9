@@ -18,9 +18,10 @@ class SwitchRunnerGame():
         self.setup_obstacles();
         self.setup_maths();
         self.setup_entities();
-        self.setup_ball_state();
+        self.setup_spikes();
         self.setup_story();
         self.setup_state();
+        self.setup_xp_coin();
     
     def setup_background(self) :
         self.bg_images = []
@@ -249,7 +250,7 @@ class SwitchRunnerGame():
                             else:
                                 # Wrong
                                 self.math_feedback = f'Wrong answer. The answer is {self.math_options[self.math_correct_index]}'
-                                xp = max(0, self.xp - 7)
+                                self.xp = max(0, self.xp - 7)
                             self.math_feedback_timer = time.time() + 1.5
                             # Increase intensity
                             self.math_intensity_mult *= 1.05
@@ -317,9 +318,9 @@ class SwitchRunnerGame():
                                 self.story_index += 1
                         else:
                             if event.key in (pygame.K_LEFT, pygame.K_a):
-                                choice_selected = 0
+                                self.choice_selected = 0
                             elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                                choice_selected = 1
+                                self.choice_selected = 1
                             elif event.key in (pygame.K_SPACE, pygame.K_RETURN):
                                 self.story_choice = 'yes' if self.choice_selected == 0 else 'no'
                                 self.story_mode = False
@@ -376,7 +377,7 @@ class SwitchRunnerGame():
                     self.ball_y = end_y
                     self.character_flipped = not self.character_flipped  # Flip character on switch
             else:
-                ball_y = PLATFORM_Y_TOP + BALL_RADIUS + PLATFORM_THICKNESS // 2 if self.ball_lane == 0 else PLATFORM_Y_BOTTOM - BALL_RADIUS - PLATFORM_THICKNESS // 2
+                self.ball_y = PLATFORM_Y_TOP + BALL_RADIUS + PLATFORM_THICKNESS // 2 if self.ball_lane == 0 else PLATFORM_Y_BOTTOM - BALL_RADIUS - PLATFORM_THICKNESS // 2
             # Draw character run/hurt/death animation instead of ball
             if self.character_visible:
                 # Draw invincibility bubble if active
@@ -485,30 +486,30 @@ class SwitchRunnerGame():
             xp_surf = font.render(f'XP: {self.xp}', True, (255, 255, 100))
             screen.blit(xp_surf, (40, 40))
             # Move obstacles
-            obstacles = [(ox - self.obstacle_speed, olane, frame_idx) for ox, olane, frame_idx in self.obstacles if ox > -OBSTACLE_WIDTH]
-            pickables = [(px - self.obstacle_speed, plane, anim_index, anim_timer) for (px, plane, anim_index, anim_timer) in self.pickables if px > -PICKABLE_RADIUS]
-            powerups = [(ppx - self.obstacle_speed, pplane, ptype, *pdata) for (ppx, pplane, ptype, *pdata) in self.powerups if ppx > -POWERUP_RADIUS]
+            self.obstacles = [(ox - self.obstacle_speed, olane, frame_idx) for ox, olane, frame_idx in self.obstacles if ox > -OBSTACLE_WIDTH]
+            self.pickables = [(px - self.obstacle_speed, plane, anim_index, anim_timer) for (px, plane, anim_index, anim_timer) in self.pickables if px > -PICKABLE_RADIUS]
+            self.powerups = [(ppx - self.obstacle_speed, pplane, ptype, *pdata) for (ppx, pplane, ptype, *pdata) in self.powerups if ppx > -POWERUP_RADIUS]
             # Spawn new obstacles
             self.frame_count += 1
             if self.frame_count % self.spawn_interval == 0:
                 lane = random.randint(0, 1)
                 frame_idx = random.randint(0, SPIKES_FRAMES - 1)
-                obstacles.append((WIDTH, lane, frame_idx))
+                self.obstacles.append((WIDTH, lane, frame_idx))
             # Spawn new pickables
             if self.frame_count % PICKABLE_SPAWN_INTERVAL == 0:
                 lane = random.randint(0, 1)
                 # Check for overlap with obstacles in the same lane
                 overlap = False
-                for ox, olane, frame_idx in obstacles:
+                for ox, olane, frame_idx in self.obstacles:
                     if olane == lane and abs(ox - WIDTH) < OBSTACLE_WIDTH + PICKABLE_RADIUS * 2:
                         overlap = True
                         break
                 if not overlap:
                     # Start each pickable at a random frame for independent animation
-                    pickables.append((WIDTH, lane, random.randint(0, XP_COIN_FRAMES-1), 0))
+                    self.pickables.append((WIDTH, lane, random.randint(0, XP_COIN_FRAMES-1), 0))
             # Collision detection (only when not gliding)
             if self.ball_glide == 0:
-                for ox, olane, frame_idx in obstacles:
+                for ox, olane, frame_idx in self.obstacles:
                     if self.invincible:
                         continue
                     if olane == self.ball_lane:
@@ -538,7 +539,7 @@ class SwitchRunnerGame():
                                     self.game_over = True
                                 break
                 # Pickable collision
-                for pick in pickables[:]:
+                for pick in self.pickables[:]:
                     px, plane, anim_index, anim_timer = pick
                     if plane == self.ball_lane:
                         if plane == 0:
@@ -550,9 +551,9 @@ class SwitchRunnerGame():
                         dist = ((ball_center[0] - pick_center[0]) ** 2 + (ball_center[1] - pick_center[1]) ** 2) ** 0.5
                         if dist < BALL_RADIUS + PICKABLE_RADIUS:
                             self.xp += 15
-                            pickables.remove(pick)
+                            self.pickables.remove(pick)
                 # Powerup collision
-                for powerup in powerups[:]:
+                for powerup in self.powerups[:]:
                     ppx, pplane, ptype, *pdata = powerup
                     if pplane == self.ball_lane:
                         if pplane == 0:
@@ -565,11 +566,11 @@ class SwitchRunnerGame():
                         if dist < BALL_RADIUS + POWERUP_RADIUS:
                             if ptype == POWERUP_TYPE_INVINCIBLE:
                                 duration = pdata[0] if pdata else 7
-                                invincible = True
-                                invincible_timer = time.time() + duration
+                                self.invincible = True
+                                self.invincible_timer = time.time() + duration
                             elif ptype == POWERUP_TYPE_HEART:
-                                lives = min(self.lives + 1, 9)
-                            powerups.remove(powerup)
+                                self.lives = min(self.lives + 1, 9)
+                            self.powerups.remove(powerup)
             # Input
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
