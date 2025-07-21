@@ -10,7 +10,16 @@ class CustomLexer(QsciLexerPython):
 
         self.setDefaultFont(font.default);
         self.setDefaultColor(theme.text);
-        self.setColor(theme.background_alternative, self.Comment);
+        self.setColor(theme.text.darker(2), self.Comment);
+        self.setColor(theme.text.darker(2), self.CommentBlock);
         self.setColor(theme.primary, self.Keyword);
         self.setColor(theme.text, self.ClassName);
+        self.setColor(theme.text, self.SingleQuotedString);
+        self.setColor(theme.text, self.SingleQuotedFString);
+        self.setColor(theme.text, self.DoubleQuotedString);
+        self.setColor(theme.text, self.DoubleQuotedFString);
+        self.setColor(theme.text, self.UnclosedString);
+        self.setColor(theme.text, self.FunctionMethodName)
+        self.setColor(theme.secondary, self.Number);
+
         self.setPaper(theme.background);

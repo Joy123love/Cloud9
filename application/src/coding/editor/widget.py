@@ -38,7 +38,7 @@ class CodeEditor(QsciScintilla):
         left_margin_width_pixels = font_metrics.horizontalAdvance(" ") * left_margin_width
         self.SendScintilla(self.SCI_SETMARGINLEFT, left_margin_index, left_margin_width_pixels)
         
-        self.setMarginsForegroundColor(QColor(theme.background))
+        self.setMarginsForegroundColor(QColor(theme.text))
         self.setMarginsBackgroundColor(QColor(theme.background))
         self.setFoldMarginColors(
             QColor(theme.background), QColor(theme.background)
@@ -55,7 +55,7 @@ class CodeEditor(QsciScintilla):
         self.setIndentationGuides(True)
         self.setReadOnly(False)
         self.context_menu = QMenu(self)
-        self.context_menu.addAction("Run").triggered.connect(self.run)
+        self.context_menu.addAction("Run").triggered.connect(lambda : self.run())
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.show_context_menu)
     
@@ -67,7 +67,7 @@ class CodeEditor(QsciScintilla):
             exec(self.text(), locals);
             return locals
         else:
-            print(validity);
+            print("Invalid Code");
             locals = {};
             exec(self.text(), locals);
             return locals
