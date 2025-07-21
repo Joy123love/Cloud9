@@ -1,16 +1,19 @@
 import sys
-import pygame
+
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QWindow
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QHBoxLayout
 
-from .game import HEIGHT, WIDTH, SwitchRunnerGame
+
 
 
 class SwitchRunnerScreen(QMainWindow):
     def __init__(self):
+
         super().__init__()
 
+        from .game import HEIGHT, WIDTH, SwitchRunnerGame
+        import pygame
         # Set up the main window
         self.setWindowTitle("Pygame and PyQt Example")
         self.setGeometry(100, 100, 800, 600)

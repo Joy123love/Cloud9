@@ -115,7 +115,7 @@ class LoginWindow(QWidget):
         layout.setColumnStretch(1, 3)
 
     def open_signup(self):
-        from signup_window import SignUpWindow
+        from .signup_window import SignUpWindow
         self.signup_window = SignUpWindow()
         self.signup_window.show()
         self.close()
