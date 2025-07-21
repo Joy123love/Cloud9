@@ -321,10 +321,10 @@ class SwitchRunnerGame():
                             elif event.key in (pygame.K_RIGHT, pygame.K_d):
                                 choice_selected = 1
                             elif event.key in (pygame.K_SPACE, pygame.K_RETURN):
-                                story_choice = 'yes' if self.choice_selected == 0 else 'no'
+                                self.story_choice = 'yes' if self.choice_selected == 0 else 'no'
                                 self.story_mode = False
                                 # If 'no', show evil laugh for a moment before starting game
-                                if story_choice == 'no':
+                                if self.story_choice == 'no':
                                     laugh_font = pygame.font.SysFont('arial', 60, bold=True)
                                     laugh_text = laugh_font.render('Wrong choice, Hahahahahahah', True, (255, 99, 71))
                                     screen.fill((30, 30, 40))
@@ -333,7 +333,7 @@ class SwitchRunnerGame():
                                     pygame.display.flip()
                                     pygame.time.delay(1800)
                                 # Set obstacle frequency
-                                self.spawn_interval = SPAWN_INTERVAL_FAST if story_choice == 'no' else SPAWN_INTERVAL_SLOW
+                                self.spawn_interval = SPAWN_INTERVAL_FAST if self.story_choice == 'no' else SPAWN_INTERVAL_SLOW
                 continue
             screen.fill((30, 30, 40))
             # Draw parallax background
@@ -357,7 +357,7 @@ class SwitchRunnerGame():
                 if self.ball_x > ANCHOR_X:
                     # Keep the ball at anchor, move obstacles left instead
                     shift = self.ball_x - ANCHOR_X
-                    ball_x = ANCHOR_X
+                    self.ball_x = ANCHOR_X
                     obstacles = [(ox - shift, olane, frame_idx) for ox, olane, frame_idx in self.obstacles]
                     pickables = [(px - shift, plane, anim_index, anim_timer) for (px, plane, anim_index, anim_timer) in self.pickables]
                     powerups = [(ppx - shift, pplane, ptype, *pdata) for (ppx, pplane, ptype, *pdata) in self.powerups]
@@ -549,7 +549,7 @@ class SwitchRunnerGame():
                             pick_center = (int(px), PLATFORM_Y_BOTTOM - BALL_RADIUS - PLATFORM_THICKNESS // 2)
                         dist = ((ball_center[0] - pick_center[0]) ** 2 + (ball_center[1] - pick_center[1]) ** 2) ** 0.5
                         if dist < BALL_RADIUS + PICKABLE_RADIUS:
-                            xp += 15
+                            self.xp += 15
                             pickables.remove(pick)
                 # Powerup collision
                 for powerup in powerups[:]:
