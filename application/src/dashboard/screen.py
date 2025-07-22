@@ -62,12 +62,13 @@ class SidebarFrame(QFrame):
         painter.drawRoundedRect(rect.adjusted(0, 0, -1, -1), radius, radius)
 
 class DashboardScreen(QWidget):
-    def __init__(self):
+    def __init__(self, username="Guest"):
         super().__init__()
         # self.setWindowTitle('Gaming Dashboard')
         self.setGeometry(100, 100, 1200, 700)
         self.setAutoFillBackground(True);
         self.setStyleSheet('background-color: #152E57;')  # Darker background for main window
+        self.username = username
         self.selected_sidebar_index = 0  # 0: Home, 1: File Plus, 2: Settings
         self.sidebar_icons = []
         self.selection_mode = False
@@ -127,7 +128,7 @@ class DashboardScreen(QWidget):
         greeting_frame = BannerFrame(os.path.join('assets', 'images', 'banner2.jpeg'))
         greeting_layout = QVBoxLayout(greeting_frame)
         greeting_layout.setContentsMargins(32, 16, 32, 16)
-        greeting_label = QLabel('Hello, Olivia')
+        greeting_label = QLabel(f'Hello, {self.username}')
         greeting_label.setStyleSheet('color: #ffffff; font-size: 24px; font-weight: bold; background: transparent;')
         greeting_sub = QLabel('Welcome back to our platform')
         greeting_sub.setStyleSheet('color: #b0c4de; font-size: 14px; background: transparent;')
@@ -285,7 +286,7 @@ class DashboardScreen(QWidget):
         notif_icon.setFixedSize(28, 28)
         notif_icon.setStyleSheet('background: transparent; margin-right: 8px;')
         # User name
-        user_name = QLabel('Olivia Woods')
+        user_name = QLabel(self.username if self.username != "Guest" else "Guest")
         user_name.setStyleSheet('color: #fff; font-size: 15px; font-weight: bold; padding: 0 12px;')
         user_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         # Profile picture (circle placeholder)

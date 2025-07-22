@@ -11,6 +11,7 @@ import platform
 class Screens(QStackedWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
+        self.current_username = "Guest"
         self.setup_routes();
         self.setup_screens();
         self.dock = None;
@@ -30,7 +31,7 @@ class Screens(QStackedWidget):
         self.signup = SignUpScreen()
         self.addWidget(self.signup)
         from dashboard.screen import DashboardScreen
-        self.dashboard = DashboardScreen()
+        self.dashboard = DashboardScreen(self.current_username)
         self.addWidget(self.dashboard)
         from coding.create.screen import CreateCodingGameScreen
         self.coding_create = CreateCodingGameScreen()
@@ -52,8 +53,14 @@ class Screens(QStackedWidget):
     def open_signup_screen(self):
         self.open_screen(SIGNUP) 
     
-    def open_dashboard_screen(self):
-        self.open_screen(MENU) 
+    def open_dashboard_screen(self, username="Guest"):
+        self.current_username = username
+        # Recreate the dashboard with the new username
+        from dashboard.screen import DashboardScreen
+        self.removeWidget(self.dashboard)
+        self.dashboard = DashboardScreen(self.current_username)
+        self.insertWidget(MENU, self.dashboard)
+        self.open_screen(MENU)
 
     def open_coding_play_screen(self, details : ChallengeDetails):
         from coding.play.sidebar import PlaySidebar

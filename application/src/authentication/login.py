@@ -150,8 +150,9 @@ class LoginScreen(QWidget):
             )
             if response.status_code == 200:
                 show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Success", "Logged in successfully!")
+                username = response.json().get('username', email.split('@')[0])
                 if routes.open_dashboard:
-                    routes.open_dashboard()
+                    routes.open_dashboard(username)
             else:
                 msg = response.json().get('message', 'Login failed.')
                 show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Failed", msg)
@@ -162,4 +163,4 @@ class LoginScreen(QWidget):
     def handle_continue_without_signin(self):
         show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Guest Login", "Continuing as guest.")
         if routes.open_dashboard:
-            routes.open_dashboard()
+            routes.open_dashboard("Guest")
