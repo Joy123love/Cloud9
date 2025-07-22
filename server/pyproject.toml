@@ -5,6 +5,7 @@ dependencies = [
   "flask",
   "flask_cors",
   "flask_sqlalchemy",
+  "bcrypt",
 ]
 
 extend-exclude = [

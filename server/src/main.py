@@ -3,12 +3,17 @@ from flask import Flask, Response, request, jsonify
 from model_database import CodingChallenges, CodingChallengesChecks, CodingChallengesStatements, db, User
 from flask_cors import CORS
 from typing import Optional
+import bcrypt
+import os
+
+from utils import get_project_root
 
 app = Flask(__name__)
 CORS(app)  # Allows access from PyQt
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
 db.init_app(app)
 
@@ -22,6 +27,7 @@ def register():
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
+    password = bcrypt.hashpw(password.encode(), bcrypt.gensalt());
 
     if User.query.filter_by(email=email).first():
         return jsonify({"error": "Email already exists"}), 409
@@ -37,11 +43,12 @@ def login():
     email = data.get("email")
     password = data.get("password")
 
-    user = User.query.filter_by(email=email, password=password).first()
-    if user:
+    user = User.query.filter_by(email=email).first()
+
+    if user and bcrypt.checkpw(password.encode(), user.password):
         return jsonify({"message": "Login successful", "username": user.username, "id" : user.id, "points": user.points})
-    else:
-        return jsonify({"error": "Invalid credentials"}), 401
+
+    return jsonify({"error": "Invalid credentials"}), 401
 
 @app.route('/leaderboard', methods=['GET'])
 def get_leaderboard():
