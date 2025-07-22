@@ -56,10 +56,13 @@ class Screens(QStackedWidget):
     def open_dashboard_screen(self, username="Guest"):
         self.current_username = username
         # Recreate the dashboard with the new username
+        if routes.set_background_style:
+            routes.set_background_style('background: #152E57;');
         from dashboard.screen import DashboardScreen
         self.removeWidget(self.dashboard)
         self.dashboard = DashboardScreen(self.current_username)
         self.insertWidget(MENU, self.dashboard)
+        self.open_screen(MENU)
         self.open_screen(MENU)
 
     def open_coding_play_screen(self, details : ChallengeDetails):
@@ -81,17 +84,13 @@ class Screens(QStackedWidget):
 class ExtraMainScreen(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
-        if platform.system() == "Windows":
-            self.setStyleSheet("background: #152E57;")
-        else:
-            self.setStyleSheet("background: transparent;")
-            self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.setStyleSheet("background: transparent;")
         self.setMinimumSize(1280, 720);
         self.screens = Screens(parent=self);
         self.setCentralWidget(self.screens);
+        routes.set_background_style = self.setStyleSheet
 
         self.setPalette(get_palette_from_theme(theme));
-
 
 
 app = QApplication(sys.argv)

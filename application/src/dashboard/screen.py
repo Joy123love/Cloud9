@@ -1,7 +1,7 @@
 import sys
 from PyQt6.QtWidgets import QApplication, QWidget, QHBoxLayout, QVBoxLayout, QLabel, QPushButton, QFrame, QScrollArea, QStackedWidget, QLineEdit, QCheckBox, QFileDialog
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QImage, QLinearGradient, QBrush, QPen, QPainterPath
+from PyQt6.QtGui import QPalette, QPixmap, QPainter, QColor, QImage, QLinearGradient, QBrush, QPen, QPainterPath
 from PyQt6.QtCore import QRectF
 from PyQt6.QtSvgWidgets import QSvgWidget
 import re
@@ -10,6 +10,7 @@ from functools import partial
 import subprocess
 from backend.dashboard.notepad_db import init_db, add_file_to_db, get_all_files, delete_file_from_db
 from assets import icons
+import routes;
 from utils import get_project_root
 
 # Custom BannerFrame for scaled background image and overlay
@@ -19,7 +20,6 @@ class BannerFrame(QFrame):
         self.image_path = image_path
         self.pixmap = QPixmap(self.image_path)
         self.setMinimumHeight(120)
-        # self.setMaximumHeight(220)
         self.setStyleSheet('border-radius: 16px;')
 
     def paintEvent(self, event):
@@ -64,8 +64,6 @@ class SidebarFrame(QFrame):
 class DashboardScreen(QWidget):
     def __init__(self, username="Guest"):
         super().__init__()
-        # self.setWindowTitle('Gaming Dashboard')
-        self.setGeometry(100, 100, 1200, 700)
         self.setAutoFillBackground(True);
         self.setStyleSheet('background-color: #152E57;')  # Darker background for main window
         self.username = username
@@ -125,7 +123,7 @@ class DashboardScreen(QWidget):
         home_inner.setStyleSheet('background: transparent; border-radius: 20px;')
         home_layout = QVBoxLayout(home_inner)
         # Add greeting and popular games as before
-        greeting_frame = BannerFrame(os.path.join('assets', 'images', 'banner2.jpeg'))
+        greeting_frame = BannerFrame(f"{get_project_root()}/src/assets/images/banner2.jpeg")
         greeting_layout = QVBoxLayout(greeting_frame)
         greeting_layout.setContentsMargins(32, 16, 32, 16)
         greeting_label = QLabel(f'Hello, {self.username}')
