@@ -53,6 +53,8 @@ class Screens(QStackedWidget):
         self.open_screen(SIGNUP) 
     
     def open_dashboard_screen(self):
+        if routes.set_background_style:
+            routes.set_background_style('background: #152E57;');
         self.open_screen(MENU) 
 
     def open_coding_play_screen(self, details : ChallengeDetails):
@@ -74,17 +76,13 @@ class Screens(QStackedWidget):
 class ExtraMainScreen(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
-        if platform.system() == "Windows":
-            self.setStyleSheet("background: #152E57;")
-        else:
-            self.setStyleSheet("background: transparent;")
-            self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.setStyleSheet("background: transparent;")
         self.setMinimumSize(1280, 720);
         self.screens = Screens(parent=self);
         self.setCentralWidget(self.screens);
+        routes.set_background_style = self.setStyleSheet
 
         self.setPalette(get_palette_from_theme(theme));
-
 
 
 app = QApplication(sys.argv)
