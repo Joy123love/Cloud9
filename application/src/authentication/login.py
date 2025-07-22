@@ -133,8 +133,6 @@ class LoginScreen(QWidget):
             )
             if response.status_code == 200:
                 QtWidgets.QMessageBox.information(self, "Success", "Logged in successfully!")
-                from main import window
-                window.screens.open_signup_screen();
                 if routes.open_dashboard:
                     routes.open_dashboard()
             else:
