@@ -8,7 +8,9 @@ import re
 import os
 from functools import partial
 import subprocess
-from notepad_db import init_db, add_file_to_db, get_all_files, delete_file_from_db
+from backend.dashboard.notepad_db import init_db, add_file_to_db, get_all_files, delete_file_from_db
+from assets import icons
+from utils import get_project_root
 
 # Custom BannerFrame for scaled background image and overlay
 class BannerFrame(QFrame):
@@ -17,7 +19,7 @@ class BannerFrame(QFrame):
         self.image_path = image_path
         self.pixmap = QPixmap(self.image_path)
         self.setMinimumHeight(120)
-        self.setMaximumHeight(220)
+        # self.setMaximumHeight(220)
         self.setStyleSheet('border-radius: 16px;')
 
     def paintEvent(self, event):
@@ -59,11 +61,12 @@ class SidebarFrame(QFrame):
         painter.setPen(QPen(QColor('#e0e0e0'), 1))
         painter.drawRoundedRect(rect.adjusted(0, 0, -1, -1), radius, radius)
 
-class MainWindow(QWidget):
+class DashboardScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Gaming Dashboard')
+        # self.setWindowTitle('Gaming Dashboard')
         self.setGeometry(100, 100, 1200, 700)
+        self.setAutoFillBackground(True);
         self.setStyleSheet('background-color: #152E57;')  # Darker background for main window
         self.selected_sidebar_index = 0  # 0: Home, 1: File Plus, 2: Settings
         self.sidebar_icons = []
@@ -87,19 +90,22 @@ class MainWindow(QWidget):
         sidebar_layout = QVBoxLayout(sidebar)
         sidebar_layout.addStretch()
         # Sidebar icons with state management
-        home_icon = QSvgWidget('assets/icons/home-tinted.svg')
+        home_icon = QSvgWidget(icons.get_path("home-tinted.svg"));
         home_icon.setFixedSize(32, 32)
         home_icon.setStyleSheet('background: transparent;')
-        file_plus_icon = QSvgWidget('assets/icons/file-plus-outline.svg')
+        file_plus_icon = QSvgWidget(icons.get_path("file-plus-outline.svg"));
         file_plus_icon.setFixedSize(32, 32)
+        file_plus_icon.setAutoFillBackground(True);
         file_plus_icon.setStyleSheet('background: transparent;')
-        settings_icon = QSvgWidget('assets/icons/settings-outline.svg')
+        settings_icon = QSvgWidget(icons.get_path("settings-outline.svg"));
         settings_icon.setFixedSize(32, 32)
         settings_icon.setStyleSheet('background: transparent;')
         self.sidebar_icons = [home_icon, file_plus_icon, settings_icon]
         # Add click event handling
+        
         for idx, icon_widget in enumerate(self.sidebar_icons):
             icon_widget.mousePressEvent = partial(self.sidebar_icon_clicked, idx)
+        
         # Icon group
         icon_group = QVBoxLayout()
         icon_group.setSpacing(28)
@@ -226,12 +232,12 @@ class MainWindow(QWidget):
             file_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
             file_row.addWidget(file_label)
             file_row.addStretch(1)
-            edit_icon = QSvgWidget('assets/icons/edit.svg')
+            edit_icon = QSvgWidget(icons.get_path("edit.svg"));
             edit_icon.setFixedSize(24, 24)
             edit_icon.setStyleSheet('background: transparent; border: none; margin-right: 18px;')
             file_row.addWidget(edit_icon)
             file_row.addSpacing(10)
-            delete_icon = QSvgWidget('assets/icons/delete.svg')
+            delete_icon = QSvgWidget(icons.get_path("delete.svg"));
             delete_icon.setFixedSize(24, 24)
             delete_icon.setStyleSheet('background: transparent; border: none;')
             delete_icon.setVisible(True)
@@ -275,7 +281,7 @@ class MainWindow(QWidget):
         top_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         # Notification icon
         # Load and tint notification icon SVG to white
-        notif_icon = QSvgWidget('assets/icons/notifications-tinted.svg')
+        notif_icon = QSvgWidget(icons.get_path("notifications-tinted.svg"));
         notif_icon.setFixedSize(28, 28)
         notif_icon.setStyleSheet('background: transparent; margin-right: 8px;')
         # User name
@@ -312,13 +318,13 @@ class MainWindow(QWidget):
 
     def update_sidebar_icons(self):
         icon_paths = [
-            ('assets/icons/home-tinted.svg', 'assets/icons/home-outline.svg'),
-            ('assets/icons/file-plus-tinted.svg', 'assets/icons/file-plus-outline.svg'),
-            ('assets/icons/settings-tinted.svg', 'assets/icons/settings-outline.svg'),
+            ("home-tinted.svg", "home-outline.svg"),
+            ("file-plus-tinted.svg", "file-plus-outline.svg"),
+            ("settings-tinted.svg", "settings-outline.svg"),
         ]
         for i, icon_widget in enumerate(self.sidebar_icons):
             selected_path, unselected_path = icon_paths[i]
-            icon_widget.load(selected_path if self.selected_sidebar_index == i else unselected_path)
+            icon_widget.load(icons.get_path(selected_path if self.selected_sidebar_index == i else unselected_path))
 
     def sidebar_icon_clicked(self, idx, event):
         self.selected_sidebar_index = idx
@@ -329,6 +335,8 @@ class MainWindow(QWidget):
         # Clear the search row
         while self.search_row.count():
             item = self.search_row.takeAt(0)
+            if not item:
+                continue
             widget = item.widget()
             # Only delete icons, not the persistent search box
             if widget and widget is not self.search_box:
@@ -339,30 +347,29 @@ class MainWindow(QWidget):
         if not self.selection_mode:
             # Normal mode: select and add-file icons
             if file_count > 0:
-                select_icon = QSvgWidget('assets/icons/select.svg')
-                select_icon.setFixedSize(28, 28)
+                select_icon = QSvgWidget(icons.get_path("select.svg"));
+                select_icon.setFixedSize(28, 28);
                 select_icon.setStyleSheet('background: transparent; margin-right: 10px;')
                 select_icon.mousePressEvent = lambda e: self.enter_selection_mode()
                 self.search_row.addWidget(select_icon)
-            add_file_icon = QSvgWidget('assets/icons/add-file.svg')
+            add_file_icon = QSvgWidget(icons.get_path("add-file.svg"));
             add_file_icon.setFixedSize(28, 28)
             add_file_icon.setStyleSheet('background: transparent; margin-right: 20px;')
             add_file_icon.mousePressEvent = lambda e: self.open_add_file_dialog()
             self.search_row.addWidget(add_file_icon)
         else:
             # Selection mode: x, select-all/deselect-all, delete icons
-            x_icon = QSvgWidget('assets/icons/x.svg')
+            x_icon = QSvgWidget(icons.get_path("x.svg"))
             x_icon.setFixedSize(28, 28)
             x_icon.setStyleSheet('background: transparent; margin-right: 10px;')
             x_icon.mousePressEvent = lambda e: self.exit_selection_mode()
             # Determine if all files are selected
             all_selected = all(cb.isChecked() for _, _, cb in self.file_rects) and file_count > 0
-            select_all_icon_path = 'assets/icons/deselect-all.svg' if all_selected else 'assets/icons/select-all.svg'
-            select_all_icon = QSvgWidget(select_all_icon_path)
+            select_all_icon = QSvgWidget(icons.get_path('deselect-all.svg' if all_selected else 'select-all.svg'))
             select_all_icon.setFixedSize(28, 28)
             select_all_icon.setStyleSheet('background: transparent; margin-right: 10px;')
             select_all_icon.mousePressEvent = lambda e: self.toggle_select_all_files()
-            delete_icon = QSvgWidget('assets/icons/delete.svg')
+            delete_icon = QSvgWidget(icons.get_path('delete.svg'))
             delete_icon.setFixedSize(28, 28)
             delete_icon.setStyleSheet('background: transparent; margin-right: 20px;')
             delete_icon.mousePressEvent = lambda e: self.delete_selected_files()
@@ -421,7 +428,7 @@ class MainWindow(QWidget):
             self.generate_questions_for_file(file_path)
 
     def generate_questions_for_file(self, file_path):
-        script_path = os.path.join("Users Notes Extraction", "generate_questions.py")
+        script_path = f"{get_project_root()}/src/backend/dashboard/generate_questions.py"
         result = subprocess.run(
             [sys.executable, script_path, file_path],
             capture_output=True,
@@ -447,6 +454,8 @@ class MainWindow(QWidget):
         # Remove all widgets from the file list layout
         while self.file_list_layout.count():
             item = self.file_list_layout.takeAt(0)
+            if not item:
+                continue;
             widget = item.widget()
             if widget:
                 widget.deleteLater()
@@ -472,12 +481,12 @@ class MainWindow(QWidget):
             file_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
             file_row.addWidget(file_label)
             file_row.addStretch(1)
-            edit_icon = QSvgWidget('assets/icons/edit.svg')
+            edit_icon = QSvgWidget(icons.get_path('edit.svg'))
             edit_icon.setFixedSize(24, 24)
             edit_icon.setStyleSheet('background: transparent; border: none; margin-right: 18px;')
             file_row.addWidget(edit_icon)
             file_row.addSpacing(10)
-            delete_icon = QSvgWidget('assets/icons/delete.svg')
+            delete_icon = QSvgWidget(icons.get_path('delete.svg'))
             delete_icon.setFixedSize(24, 24)
             delete_icon.setStyleSheet('background: transparent; border: none;')
             delete_icon.setVisible(True)
@@ -496,6 +505,6 @@ class MainWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = DashboardScreen()
     window.show()
     sys.exit(app.exec()) 

@@ -20,6 +20,7 @@ if __name__ == "__main__":
     from authentication.login_window import LoginWindow
     from authentication.signup_window import SignUpWindow
     from switch_runner.screen import SwitchRunnerScreen
+    from dashboard.screen import DashboardScreen
     # TODO Routes - For now comment in the appropriate screens;
     # window = CreateCodingGameScreen();
     # window = PlayCodingGameScreen();
@@ -27,7 +28,8 @@ if __name__ == "__main__":
     # window = CreateQuizScreen()
     # window = SwitchRunnerScreen();
 
-    window = ExtraMainScreen(LoginWindow());
+    # window = ExtraMainScreen(LoginWindow());
+    window = ExtraMainScreen(DashboardScreen());
     # window = ExtraMainScreen(SignUpWindow());
 
     window.setPalette(get_palette_from_theme(theme));
