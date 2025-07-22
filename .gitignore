@@ -4,6 +4,8 @@ __pycache__/*
 /pycache/*
 **/pycache/*
 
+*.db
+**/user_data/*
 .idea/*
 *.py[codz]
 *$py.class
