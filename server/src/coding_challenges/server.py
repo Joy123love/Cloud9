@@ -3,7 +3,7 @@ from flask import Flask, Response, request, jsonify
 from model_database import CodingChallenges, CodingChallengesChecks, CodingChallengesStatements, db, User
 from flask_cors import CORS
 
-from ..server import app, db, update_users_points, get_username
+from ..main import app, db, update_users_points, get_username
 
 @app.route('/coding/completed', methods=['POST'])
 def completed_coding_challenge():

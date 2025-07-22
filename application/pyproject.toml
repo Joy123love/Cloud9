@@ -5,7 +5,11 @@ dependencies = [
   "PyQt6",
   "PyQt6-QScintilla",
   "pygame",
-  "requests"
+  "requests",
+  "sqlite3",
+  "huggingface_hub",
+  "PyPDF2",
+  "docx"
 ]
 
 extend-exclude = [
