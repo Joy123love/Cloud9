@@ -125,14 +125,21 @@ class SidebarBottom(QWidget):
 class CreateSidebar(QDockWidget):
     def __init__(self, details : ChallengeDetails, *args, **kwargs):
         super().__init__(*args, **kwargs);
+        self.details = details;
+
         self.main = QWidget();
         layout = QVBoxLayout();
-        self.top = SidebarTop(details.name, details.description);
+        self.top = SidebarTop(self.details.name, self.details.description);
 
         layout.addWidget(self.top);
-        self.bottom = SidebarBottom(details.statements, details.checks);
+        self.bottom = SidebarBottom(self.details.statements, self.details.checks);
         layout.addWidget(self.bottom);
 
         self.main.setLayout(layout)
         self.setWidget(self.main)
+
+    def new_statement(self):
+        self.details.statements["new"] = 100000;
+
+
 

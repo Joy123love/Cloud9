@@ -9,23 +9,19 @@ from ..details import ChallengeDetails
 from .controls import PlayMenu
 
 
-class PlayCodingGameScreen(QMainWindow):
+class PlayCodingGameScreen(QWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
+        
+        self.setBackgroundRole(QPalette.ColorRole.AlternateBase);
+        self.setAutoFillBackground(True);
 
         editor_layout = QVBoxLayout();
         self.menu = PlayMenu();
         editor_layout.addWidget(self.menu);
-        self.editor = CodeEditor("10");
+        self.editor = CodeEditor("Loading...");
         editor_layout.addWidget(self.editor);
+        self.setLayout(editor_layout);
 
-        right = QWidget();
-        right.setLayout(editor_layout);
-
-        self.setBackgroundRole(QPalette.ColorRole.AlternateBase);
-        self.setAutoFillBackground(True);
-
-        self.side = PlaySidebar(ChallengeDetails("Test Project", "Taida", "Finish The App", "hello()", Limits().keywords, ["x == 19"],));
-
-        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.side);
-        self.setCentralWidget(right)
+    def load(self, details : ChallengeDetails):
+        self.editor.setText(details.starting);

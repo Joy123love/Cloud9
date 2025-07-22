@@ -1,23 +1,20 @@
+from collections.abc import Callable
 from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtWidgets import QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit
 import os
 import requests
+import routes
 # from dashboard import DashboardWindow
 
 from assets.icons import icons
 from .styles import STYLES
 
-
-class LoginWindow(QWidget):
+class LoginScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Login")
-        self.setFixedSize(800, 500)
-        self.setStyleSheet("background: transparent;")
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
-        self.signup_window = None
+        self.open_signup : Callable[[], None]|None = None;
         self.setup_ui()
 
     def setup_ui(self):
@@ -48,7 +45,7 @@ class LoginWindow(QWidget):
 
         sign_up_btn = QPushButton("Sign Up")
         sign_up_btn.setStyleSheet(STYLES["button"])
-        sign_up_btn.clicked.connect(self.open_signup)
+        sign_up_btn.clicked.connect(self.handle_open_signup)
 
         left_layout.addWidget(title_label, alignment=Qt.AlignmentFlag.AlignTop)
         left_layout.addSpacing(20)
@@ -82,6 +79,7 @@ class LoginWindow(QWidget):
         close_btn.setIconSize(QSize(20, 20))
 
         close_btn.clicked.connect(self.close)
+
         top_bar.addWidget(close_btn)
         right_layout.addLayout(top_bar)
 
@@ -114,11 +112,9 @@ class LoginWindow(QWidget):
         layout.setColumnStretch(0, 2)
         layout.setColumnStretch(1, 3)
 
-    def open_signup(self):
-        from .signup_window import SignUpWindow
-        self.signup_window = SignUpWindow()
-        self.signup_window.show()
-        self.close()
+    def handle_open_signup(self):
+        if routes.open_signup:
+            routes.open_signup()
 
     def handle_sign_in(self):
         email = self.email_input.text().strip()
@@ -129,17 +125,18 @@ class LoginWindow(QWidget):
             return
 
         try:
+            from constants import SERVER_URL
             response = requests.post(
-                "http://127.0.0.1:5000/login",
+                SERVER_URL + "login",
                 json={"email": email, "password": password},
                 timeout=5
             )
             if response.status_code == 200:
                 QtWidgets.QMessageBox.information(self, "Success", "Logged in successfully!")
-                # self.dashboard = DashboardWindow()
-                # self.dashboard.show()
-                # self.close()
-
+                from main import window
+                window.screens.open_signup_screen();
+                if routes.open_dashboard:
+                    routes.open_dashboard()
             else:
                 msg = response.json().get('message', 'Login failed.')
                 QtWidgets.QMessageBox.warning(self, "Failed", msg)

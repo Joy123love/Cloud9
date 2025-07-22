@@ -1,5 +1,6 @@
-from flask import Flask, request, jsonify
-from model_database import db, User
+import random
+from flask import Flask, Response, request, jsonify
+from model_database import CodingChallenges, CodingChallengesChecks, CodingChallengesStatements, db, User
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -37,7 +38,7 @@ def login():
 
     user = User.query.filter_by(email=email, password=password).first()
     if user:
-        return jsonify({"message": "Login successful", "username": user.username, "points": user.points})
+        return jsonify({"message": "Login successful", "username": user.username, "id" : user.id, "points": user.points})
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
@@ -53,13 +54,29 @@ def get_leaderboard():
         })
     return jsonify({'leaderboard': leaderboard}), 200
 
-@app.route('/update_points', methods=['POST'])
+@app.route('/points', methods=['POST'])
 def update_points():
     data = request.get_json()
-    email = data.get('email')
-    new_points = data.get('points')
+    return update_users_points(data.get('points'), data.get('id'), data.get('email'))
 
-    user = User.query.filter_by(email=email).first()
+def get_username(id = None, email = None) -> None|str:
+    user = None;
+    if email is None:
+        user = User.query.filter_by(id=id).first()
+    elif id is None:
+        user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return None
+
+    return user.username
+
+def update_users_points(new_points : int, id = None, email = None) -> tuple[Response, int]:
+    user = None;
+    if email is None:
+        user = User.query.filter_by(id=id).first()
+    elif id is None:
+        user = User.query.filter_by(email=email).first()
 
     if not user:
         return jsonify({'message': 'User not found'}), 404

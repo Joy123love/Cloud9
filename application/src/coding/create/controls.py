@@ -10,12 +10,12 @@ class CreateMenu(QWidget):
         super().__init__(*args, **kwargs);
         layout = QHBoxLayout();
         
-        self.run = QPushButton();
-        self.run.setText("Submit");
-        self.run.setFont(font.default);
-        self.run.setAutoFillBackground(True);
-        self.run.setStyleSheet(f"background-color : {theme.background_alternative.name()};color: {theme.primary.name()}; border-radius: 10px; padding : 5px")
-        layout.addWidget(self.run, 0, Qt.AlignmentFlag.AlignRight);
+        self.submit = QPushButton();
+        self.submit.setText("Submit");
+        self.submit.setFont(font.default);
+        self.submit.setAutoFillBackground(True);
+        self.submit.setStyleSheet(f"background-color : {theme.background_alternative.name()};color: {theme.primary.name()}; border-radius: 10px; padding : 5px")
+        layout.addWidget(self.submit, 0, Qt.AlignmentFlag.AlignRight);
         
         self.run = QPushButton();
         self.run.setText("Run");

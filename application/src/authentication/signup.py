@@ -1,3 +1,4 @@
+from typing import Callable
 from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QLineEdit, QMessageBox
@@ -5,19 +6,15 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QCursor, QIcon
 import requests
-import os
+import routes
 
 from .styles import STYLES
-from .login_window import LoginWindow
 from assets.icons import icons
 
-class SignUpWindow(QWidget):
+class SignUpScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Sign Up")
-        self.setFixedSize(800, 500)
-        self.setStyleSheet("background: transparent;")
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        self.open_login : Callable[[], None]|None = None;
         self.setup_ui()
 
     def setup_ui(self):
@@ -140,8 +137,9 @@ class SignUpWindow(QWidget):
 
         # Send to backend
         try:
+            from constants import SERVER_URL
             response = requests.post(
-                "http://127.0.0.1:5000/register",
+                SERVER_URL + "register",
                 json={
                     "username": username,
                     "email": email,
@@ -151,15 +149,11 @@ class SignUpWindow(QWidget):
             )
             if response.status_code == 201:
                 QMessageBox.information(self, "Success", "Account created successfully!")
-                self.open_login_window()
+                if routes.open_login:
+                    routes.open_login()
             else:
                 msg = response.json().get('message', 'Registration failed.')
                 QMessageBox.warning(self, "Failed", msg)
         except Exception as e:
             print("Registration error:", e)
             QMessageBox.warning(self, "Error", "Could not connect to server.")
-
-    def open_login_window(self):
-        self.close()
-        self.login_window = LoginWindow()
-        self.login_window.show()
