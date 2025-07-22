@@ -2,6 +2,7 @@ import random
 from flask import Flask, Response, request, jsonify
 from model_database import CodingChallenges, CodingChallengesChecks, CodingChallengesStatements, db, User
 from flask_cors import CORS
+from typing import Optional
 
 app = Flask(__name__)
 CORS(app)  # Allows access from PyQt
@@ -59,7 +60,7 @@ def update_points():
     data = request.get_json()
     return update_users_points(data.get('points'), data.get('id'), data.get('email'))
 
-def get_username(id = None, email = None) -> None|str:
+def get_username(id = None, email = None) -> Optional[str]:
     user = None;
     if email is None:
         user = User.query.filter_by(id=id).first()

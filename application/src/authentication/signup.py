@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 from PyQt6.QtWidgets import (
     QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QLineEdit, QMessageBox
@@ -14,7 +14,7 @@ from assets.icons import icons
 class SignUpScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.open_login : Callable[[], None]|None = None;
+        self.open_login : Optional[Callable[[], None]] = None;
         self.setup_ui()
 
     def setup_ui(self):

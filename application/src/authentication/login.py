@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from typing import Callable, Optional
 from PyQt6 import QtWidgets, QtCore, QtGui
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
@@ -7,14 +7,26 @@ import os
 import requests
 import routes
 # from dashboard import DashboardWindow
+import platform
 
 from assets.icons import icons
 from .styles import STYLES
 
+def show_messagebox(parent, icon, title, text):
+    if platform.system() == "Windows":
+        msg_box = QtWidgets.QMessageBox(parent)
+        msg_box.setIcon(icon)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(text)
+        msg_box.setStyleSheet("QLabel { color : white; }")
+        msg_box.exec()
+    else:
+        QtWidgets.QMessageBox(icon, title, text, parent=parent).exec()
+
 class LoginScreen(QWidget):
     def __init__(self):
         super().__init__()
-        self.open_signup : Callable[[], None]|None = None;
+        self.open_signup : Optional[Callable[[], None]] = None;
         self.setup_ui()
 
     def setup_ui(self):
@@ -99,6 +111,10 @@ class LoginScreen(QWidget):
         signin_btn.setStyleSheet(STYLES["mainbutton"])
         signin_btn.clicked.connect(self.handle_sign_in)
 
+        continue_btn = QPushButton("Continue without signing in")
+        continue_btn.setStyleSheet(STYLES["mainbutton"])
+        continue_btn.clicked.connect(self.handle_continue_without_signin)
+
         right_layout.addWidget(signin_title, alignment=Qt.AlignmentFlag.AlignTop)
         right_layout.addSpacing(30)
         right_layout.addWidget(self.email_input)
@@ -106,6 +122,7 @@ class LoginScreen(QWidget):
         right_layout.addWidget(self.password_input)
         right_layout.addSpacing(60)
         right_layout.addWidget(signin_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
+        right_layout.addWidget(continue_btn, alignment=Qt.AlignmentFlag.AlignHCenter)
 
         layout.addWidget(left_panel, 0, 0)
         layout.addWidget(right_panel, 0, 1)
@@ -121,7 +138,7 @@ class LoginScreen(QWidget):
         password = self.password_input.text().strip()
 
         if not email or not password:
-            QtWidgets.QMessageBox.warning(self, "Input Error", "Please enter both email and password.")
+            show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Input Error", "Please enter both email and password.")
             return
 
         try:
@@ -132,14 +149,17 @@ class LoginScreen(QWidget):
                 timeout=5
             )
             if response.status_code == 200:
-                QtWidgets.QMessageBox.information(self, "Success", "Logged in successfully!")
-                from main import window
-                window.screens.open_signup_screen();
+                show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Success", "Logged in successfully!")
                 if routes.open_dashboard:
                     routes.open_dashboard()
             else:
                 msg = response.json().get('message', 'Login failed.')
-                QtWidgets.QMessageBox.warning(self, "Failed", msg)
+                show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Failed", msg)
         except Exception as e:
             print("Login error:", e)
-            QtWidgets.QMessageBox.warning(self, "Error", "Could not connect to server.")
+            show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Error", "Could not connect to server.")
+
+    def handle_continue_without_signin(self):
+        show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Guest Login", "Continuing as guest.")
+        if routes.open_dashboard:
+            routes.open_dashboard()

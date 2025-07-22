@@ -5,6 +5,8 @@ from coding.details import ChallengeDetails
 from theming.theme import get_palette_from_theme, theme
 import routes
 from constants import *
+import sys
+import platform
 
 class Screens(QStackedWidget):
     def __init__(self, *args, **kwargs):
@@ -72,8 +74,11 @@ class Screens(QStackedWidget):
 class ExtraMainScreen(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
-        self.setStyleSheet("background: transparent;")
-        self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
+        if platform.system() == "Windows":
+            self.setStyleSheet("background: #152E57;")
+        else:
+            self.setStyleSheet("background: transparent;")
+            self.setWindowFlag(Qt.WindowType.FramelessWindowHint)
         self.setMinimumSize(1280, 720);
         self.screens = Screens(parent=self);
         self.setCentralWidget(self.screens);
@@ -82,7 +87,6 @@ class ExtraMainScreen(QMainWindow):
 
 
 
-import sys
 app = QApplication(sys.argv)
 window = ExtraMainScreen();
 window.show()

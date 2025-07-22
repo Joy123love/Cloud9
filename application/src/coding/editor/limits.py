@@ -1,5 +1,6 @@
 from enum import Enum
 import keyword
+from typing import Optional
 
 def get_default_words() -> dict[str, int]:
     allowed = {};
@@ -14,7 +15,7 @@ class Limits:
     def __init__(self, allowed : dict[str, int] = get_default_words()):
         self.keywords = allowed;
 
-    def is_valid(self, text : str) -> LimitFailure|None:
+    def is_valid(self, text : str) -> Optional[LimitFailure]:
         used = {};
         for word in text.split():
             maximum = self.keywords.get(word);

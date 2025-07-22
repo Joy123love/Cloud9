@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import ForeignKey
 db = SQLAlchemy()
 
 class User(db.Model):
@@ -13,7 +14,7 @@ class User(db.Model):
 
 class CodingChallengesStatements(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    challenge_id = db.Column(db.Integer, foreign_key="CodingChallenges.id")
+    challenge_id = db.Column(db.Integer, ForeignKey("CodingChallenges.id"))
     keyword = db.Column(db.String(80), nullable=False)
     amount = db.Column(db.Integer, nullable=False)
 
@@ -22,13 +23,14 @@ class CodingChallengesStatements(db.Model):
 
 class CodingChallengesChecks(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    challenge_id = db.Column(db.Integer, foreign_key="CodingChallenges.id")
+    challenge_id = db.Column(db.Integer, ForeignKey("CodingChallenges.id"))
     check = db.Column(db.String(512), nullable=False)
 
     def __repr__(self):
         return f"<Check {self.check}>"
 
 class CodingChallenges(db.Model):
+    __tablename__ = "CodingChallenges"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(80), nullable=False)
