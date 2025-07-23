@@ -1,11 +1,15 @@
 from typing import Callable, Optional
+
+from PyQt6.QtGui import QPalette
 from coding.details import ChallengeDetails
 
 # Helpers
 set_background_style: Optional[Callable[[Optional[str]], None]] = None;
+reset_palette: Optional[Callable[[], None]] = None;
+set_colour_role: Optional[Callable[[QPalette.ColorRole], None]] = None;
 
 # Routes
-open_dashboard : Optional[Callable[[str], None]] = None;
+open_dashboard : Optional[Callable[[], None]] = None;
 open_signup : Optional[Callable[[], None]] = None;
 open_login : Optional[Callable[[], None]] = None;
 open_coding_create : Optional[Callable[[ChallengeDetails], None]] = None;

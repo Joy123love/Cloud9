@@ -3,7 +3,7 @@ import os
 import time
 import math
 
-from src.utils import get_project_root
+from utils import get_project_root
 
 def get_assets_path(name : str) -> str:
     return f"{get_project_root()}/src/assets/games/switch_runner/{name}";

@@ -1,5 +1,6 @@
 from enum import Enum
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QApplication, QDockWidget, QMainWindow, QStackedWidget, QTabWidget, QWidget
 from coding.details import ChallengeDetails
 
@@ -7,7 +8,6 @@ from theming.theme import get_palette_from_theme, theme
 import routes
 from constants import *
 import sys
-import platform
 
 class Screens(QStackedWidget):
     def __init__(self, *args, **kwargs):
@@ -33,7 +33,7 @@ class Screens(QStackedWidget):
         self.signup = SignUpScreen()
         self.addWidget(self.signup)
         from dashboard.screen import DashboardScreen
-        self.dashboard = DashboardScreen(self.current_username)
+        self.dashboard = DashboardScreen()
         self.addWidget(self.dashboard)
         from coding.create.screen import CreateCodingGameScreen
         self.coding_create = CreateCodingGameScreen()
@@ -64,12 +64,11 @@ class Screens(QStackedWidget):
     
     def open_dashboard_screen(self, username="Guest"):
         self.current_username = username
-        # Recreate the dashboard with the new username
-        if routes.set_background_style:
-            routes.set_background_style('background: #152E57;');
+        if routes.set_colour_role:
+            routes.set_colour_role(QPalette.ColorRole.LinkVisited);
         from dashboard.screen import DashboardScreen
         self.removeWidget(self.dashboard)
-        self.dashboard = DashboardScreen(self.current_username)
+        self.dashboard = DashboardScreen()
         self.insertWidget(MENU, self.dashboard)
         self.open_screen(MENU)
         self.open_screen(MENU)
@@ -77,6 +76,7 @@ class Screens(QStackedWidget):
     def open_coding_play_screen(self, details : ChallengeDetails):
         from coding.play.sidebar import PlaySidebar
         from coding.play.screen import PlayCodingGameScreen
+        self.setPalette(get_palette_from_theme(theme));
         self.open_screen(PLAY_CODING)
         screen = self.currentWidget();
         if screen is PlayCodingGameScreen:
@@ -86,6 +86,7 @@ class Screens(QStackedWidget):
 
     def open_coding_create_screen(self, details : ChallengeDetails):
         from coding.create.sidebar import CreateSidebar
+        # self.setPalette(get_palette_from_theme(theme));
         self.open_screen(CREATE_CODING)
         self.dock = CreateSidebar(details);
         window.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock);
@@ -93,12 +94,12 @@ class Screens(QStackedWidget):
 class ExtraMainScreen(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
-        self.setStyleSheet("background: transparent;")
         self.setMinimumSize(1280, 720);
         self.screens = Screens(parent=self);
         self.setCentralWidget(self.screens);
         routes.set_background_style = self.setStyleSheet
-
+        routes.reset_palette = lambda : self.setPalette(get_palette_from_theme(theme));
+        routes.set_colour_role = lambda x: self.setBackgroundRole(x);
         self.setPalette(get_palette_from_theme(theme));
 
 

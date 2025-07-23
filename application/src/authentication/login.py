@@ -10,6 +10,7 @@ import routes
 import platform
 
 from assets.icons import icons
+
 from .styles import STYLES
 
 def show_messagebox(parent, icon, title, text):
@@ -150,9 +151,11 @@ class LoginScreen(QWidget):
             )
             if response.status_code == 200:
                 show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Success", "Logged in successfully!")
-                username = response.json().get('username', email.split('@')[0])
+                from .session import USER_ID, USERNAME
+                USERNAME = response.json().get('username', email.split('@')[0])
+                USER_ID = response.json().get('user_id', 0)
                 if routes.open_dashboard:
-                    routes.open_dashboard(username)
+                    routes.open_dashboard()
             else:
                 msg = response.json().get('message', 'Login failed.')
                 show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Failed", msg)

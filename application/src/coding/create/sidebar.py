@@ -77,6 +77,10 @@ class SidebarBottomChecks(QWidget):
         layout.setSpacing(0);
         layout.setContentsMargins(0,0,0,0)
 
+        self.add = QPushButton();
+        self.add.setIcon(icons.add);
+        layout.addWidget(self.add)
+        
         for i, value in enumerate(checks):
             layout.addWidget(Check(i, value), 0, Qt.AlignmentFlag.AlignHCenter)
 
@@ -88,6 +92,10 @@ class SidebarBottomStatements(QWidget):
         layout = QVBoxLayout();
         layout.setSpacing(0);
         layout.setContentsMargins(0,0,0,0)
+
+        self.add = QPushButton();
+        self.add.setIcon(icons.add);
+        layout.addWidget(self.add)
 
         for (key, value) in statements.items():
             layout.addWidget(Statement(key, int(value)), 0, Qt.AlignmentFlag.AlignTop)

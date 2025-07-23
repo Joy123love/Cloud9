@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QPu
 
 
 
-class SwitchRunnerScreen(QMainWindow):
+class SwitchRunnerScreen(QWidget):
     def __init__(self):
         super().__init__()
 
@@ -17,19 +17,10 @@ class SwitchRunnerScreen(QMainWindow):
         pygame.init()
         self.pygame_surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.NOFRAME)
         handle = pygame.display.get_wm_info()['window']  
-        self.pygame_window = QWindow.fromWinId(handle)  
+        self.pygame_window = QWindow.fromWinId(handle)
         self.pygame_widget = QWidget.createWindowContainer(self.pygame_window, self)  
         self.pygame_widget.setFocusPolicy(Qt.FocusPolicy.StrongFocus) 
         self.pygame_widget.setGeometry(0, 0, 640, 480)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.pygame_widget)
-        central_widget = QWidget(self)
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
-
-        central_widget = QWidget(self)
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
         game = SwitchRunnerGame();
         game.run(self.pygame_surface);

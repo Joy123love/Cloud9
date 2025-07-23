@@ -8,8 +8,10 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 import sys
+from constants import SERVER_URL
+from theming.theme import theme
 
-LEADERBOARD_URL = "http://127.0.0.1:5000/leaderboard"  # Change to your server URL
+LEADERBOARD_URL = f"{SERVER_URL}leaderboard"  # Change to your server URL
 LOCAL_FILE = "leaderboard.json"
 
 class FetchLeaderboardThread(QThread):
@@ -34,58 +36,57 @@ class FetchLeaderboardThread(QThread):
 class LeaderCard(QFrame):
     def __init__(self, username, points):
         super().__init__()
-        self.setFixedSize(140, 160)
+        self.setMinimumSize(80, 100)
         self.setStyleSheet("""
             background-color: rgba(117, 178, 222, 0.15);
             border-radius: 18px;
         """)
 
-        name_label = QLabel(username, self)
-        name_label.setStyleSheet("color: #ffffff; font-size: 16px; font-weight: bold;")
-        name_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        name_label.setGeometry(0, 50, 140, 30)
+        layout = QVBoxLayout(self);
 
-        points_label = QLabel(f"Points: {points}", self)
-        points_label.setStyleSheet("color: #ffffff; font-size: 14px;")
-        points_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        points_label.setGeometry(0, 90, 140, 25)
+        name_label = QLabel(username)
+        name_label.setStyleSheet(f"color: {theme.text.name()}; font-size: 16px; font-weight: bold;")
+        layout.addWidget(name_label);
+        # name_label.setGeometry(0, 50, 140, 30)
+
+        points_label = QLabel(f"Points: {points}")
+        points_label.setStyleSheet(f"color: {theme.text.name()}; font-size: 14px;")
+        layout.addWidget(points_label);
+        # points_label.setGeometry(0, 90, 140, 25)
 
 class Leaderboard(QWidget):
     def __init__(self):
         super().__init__()
-        self.setStyleSheet("background-color: #1e1e1e;")
-        self.setWindowTitle("Leaderboard")
-        self.setGeometry(100, 100, 900, 600)
         self.leaderboard_data = []
         self.setup_ui()
-
         # Start loading data: try fetch from server, fallback to local file
         self.start_fetch()
 
     def setup_ui(self):
         self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(30, 30, 30, 30)
-        self.main_layout.setSpacing(20)
+        # self.main_layout.setContentsMargins(30, 30, 30, 30)
+        self.main_layout.setSpacing(5)
 
         self.header_label = QLabel("Leaderboard")
-        self.header_label.setStyleSheet("color: #ffffff; font-size: 24px; font-weight: bold;")
+        self.header_label.setStyleSheet(f"color: {theme.text.name()}; font-size: 24px; font-weight: bold;")
         self.main_layout.addWidget(self.header_label)
 
-        self.top_scroll = QScrollArea()
-        self.top_scroll.setWidgetResizable(True)
-        self.top_scroll.setStyleSheet("border: none;")
+        # self.top_scroll = QScrollArea()
+        # self.top_scroll.setWidgetResizable(True)
+        # self.top_scroll.setStyleSheet("border: none;")
         self.top_widget = QWidget()
         self.top_layout = QHBoxLayout(self.top_widget)
         self.top_layout.setContentsMargins(0, 0, 0, 0)
-        self.top_layout.setSpacing(20)
-        self.top_scroll.setWidget(self.top_widget)
-        self.main_layout.addWidget(self.top_scroll)
+        self.top_layout.setSpacing(5)
+        self.top_widget.setLayout(self.top_layout)
+        # self.top_scroll.setWidget(self.top_widget)
+        self.main_layout.addWidget(self.top_widget)
 
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Search users...")
-        self.search_input.setStyleSheet("""
+        self.search_input.setStyleSheet(f"""
             background-color: rgba(117, 178, 222, 0.15);
-            color: white;
+            color: {theme.text.name()};
             border: none;
             border-radius: 10px;
             padding: 10px;
@@ -108,7 +109,7 @@ class Leaderboard(QWidget):
                 background-color: rgba(255, 255, 255, 0.05);
                 color: white;
                 border: none;
-                gridline-color: #333;
+                gridline-color: #333333;
             }
             QTableWidget::item {
                 padding: 6px;
@@ -119,7 +120,10 @@ class Leaderboard(QWidget):
         self.table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.main_layout.addWidget(self.table)
+        # leaderboard_scroll = QScrollArea();
+        # leaderboard_scroll.setWidget(self.table)
+        # self.main_layout.addWidget(leaderboard_scroll)
+        self.main_layout.addWidget(self.table);
 
     def start_fetch(self):
         self.thread = FetchLeaderboardThread()
@@ -149,7 +153,7 @@ class Leaderboard(QWidget):
         self.leaderboard_data.sort(key=lambda x: x.get("points", 0), reverse=True)
         self.populate_top_cards()
         self.populate_table()
-        self.top_scroll.show()
+        # self.top_scroll.show()
         self.table.show()
         self.search_input.setEnabled(True)
 
@@ -172,7 +176,7 @@ class Leaderboard(QWidget):
         self.table.hide()
 
         self.empty_label = QLabel("Unable to load leaderboard at this time")
-        self.empty_label.setStyleSheet("color: #ffffff; font-size: 18px; font-weight: bold;")
+        self.empty_label.setStyleSheet(f"color: {theme.text.name()}; font-size: 18px; font-weight: bold;")
         self.empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.main_layout.addWidget(self.empty_label)
 
@@ -204,9 +208,3 @@ class Leaderboard(QWidget):
         for row in range(self.table.rowCount()):
             username_item = self.table.item(row, 1)
             self.table.setRowHidden(row, not (username_item and text in username_item.text().lower()))
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = Leaderboard()
-    window.show()
-    sys.exit(app.exec())
