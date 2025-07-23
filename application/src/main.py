@@ -2,6 +2,7 @@ from enum import Enum
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication, QDockWidget, QMainWindow, QStackedWidget, QTabWidget, QWidget
 from coding.details import ChallengeDetails
+
 from theming.theme import get_palette_from_theme, theme
 import routes
 from constants import *
@@ -17,6 +18,7 @@ class Screens(QStackedWidget):
         self.dock = None;
 
     def setup_routes(self):
+        routes.open_switch_runner = self.open_switch_runner
         routes.open_signup = self.open_signup_screen
         routes.open_login = self.open_login_screen
         routes.open_dashboard = self.open_dashboard_screen
@@ -39,6 +41,9 @@ class Screens(QStackedWidget):
         from coding.play.screen import PlayCodingGameScreen
         self.coding_play = PlayCodingGameScreen()
         self.addWidget(self.coding_play)
+        from switch_runner.screen import SwitchRunnerScreen
+        self.switch_runner = SwitchRunnerScreen()
+        self.addWidget(self.switch_runner)
 
     def open_screen(self, index : int):
         if self.dock is None:
@@ -52,6 +57,10 @@ class Screens(QStackedWidget):
 
     def open_signup_screen(self):
         self.open_screen(SIGNUP) 
+    
+    def open_switch_runner(self):
+        self.open_screen(SWITCH_RUNNER);
+        self.switch_runner.play();
     
     def open_dashboard_screen(self, username="Guest"):
         self.current_username = username
