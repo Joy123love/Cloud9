@@ -15,8 +15,8 @@ class PopularCard(QFrame):
         self.setStyleSheet('background-color: rgba(117,178,222,0.15); border-radius: 18px;')
         self.mousePressEvent = partial(func);
         card_label = QLabel("", self)
-        # self.image = QPixmap(self.image_path).scaledToHeight(int(self.height() / 2))
-        # card_label.setPixmap(self.image);
+        self.image = QPixmap(self.image_path).scaledToHeight(self.height())
+        card_label.setPixmap(self.image);
         card_label.setStyleSheet('color: #fff; font-size: 16px; font-weight: bold;')
         card_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
@@ -49,11 +49,15 @@ class GameCard(QFrame):
     def __init__(self, name : str, func, image, *args, **kwargs):
         super().__init__(*args, **kwargs);
         self.image_path = f"{get_project_root()}/src/assets/images/{image}"
-        self.image = QImage(self.image_path)
         self.setMinimumSize(140, 220)
         self.setMaximumSize(300, 300)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet('background-color: rgba(117,178,222,0.10); border-radius: 14px;')
+        card_label = QLabel("", self)
+        self.image = QPixmap(self.image_path).scaledToHeight(self.height())
+        card_label.setPixmap(self.image);
+        card_label.setStyleSheet('color: #fff; font-size: 16px; font-weight: bold; border-radius: 14px')
+        card_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         vcard_label = QLabel(name, self)
         vcard_label.setStyleSheet('color: #fff; font-size: 15px; font-weight: bold;')
         vcard_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
