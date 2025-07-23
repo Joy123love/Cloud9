@@ -11,8 +11,8 @@ import subprocess
 from backend.dashboard.notepad_db import init_db, add_file_to_db, get_all_files, delete_file_from_db
 from assets import icons
 import routes;
-from authentication.session import USER_ID, USERNAME
 from coding.details import ChallengeDetails
+
 from dashboard.banner import GreetingBanner
 from dashboard.constants import GAMES
 from dashboard.mini_games_cards import PopularCards, GamesCards
@@ -23,13 +23,14 @@ from theming.theme import theme
 from utils import get_project_root
 
 class DashboardScreen(QWidget):
-    def __init__(self):
+    def __init__(self, username="Guest"):
         super().__init__()
         self.setAutoFillBackground(True);
         self.setStyleSheet(f'background-color: {theme.background_alternative.name()}; border-radius : 25px')  # Darker background for main window
         self.selected_sidebar_index = 0  # 0: Home, 1: File Plus, 2: Settings
         self.sidebar_icons = []
         self.selection_mode = False
+        self.username = username;
 
         init_db()
         self.files_layout = QVBoxLayout()  # Ensure this is always defined
@@ -51,7 +52,7 @@ class DashboardScreen(QWidget):
         home_inner.setStyleSheet('background: transparent; border-radius: 20px;')
         home_layout = QVBoxLayout(home_inner)
         # Add greeting and popular games as before
-        self.greetings_banner = GreetingBanner()
+        self.greetings_banner = GreetingBanner(self.username)
         home_layout.addWidget(self.greetings_banner)
         popular_label = QLabel('Popular Games')
         popular_label.setStyleSheet(f'color: {theme.text.name()}; font-size: 15px; font-weight: bold; margin-top: 24px; margin-bottom: 0px;')
@@ -109,7 +110,7 @@ class DashboardScreen(QWidget):
         # main_layout.addWidget(self.content_stack, stretch=2) # This line is removed
 
         # Right panel
-        self.right_panel = DashboardRightPanel();
+        self.right_panel = DashboardRightPanel(self.username);
 
         # Add widgets to main layout in correct order
         main_layout.addWidget(self.sidebar)

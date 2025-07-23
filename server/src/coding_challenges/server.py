@@ -50,7 +50,7 @@ def create_coding_challenge():
     
     statements = [];
     for statement in statements_json:
-        statements.append(CodingChallengesStatements(challenge_id=challenge.id, keyword=statement.keyword, amount=statement.amount));
+        statements.append(CodingChallengesStatements(challenge_id=challenge.id, keyword=statement["keyword"], amount=statement["amount"]));
     
     checks = [];
     for check in checks_json:

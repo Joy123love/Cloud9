@@ -7,7 +7,6 @@ from PyQt6.QtSvgWidgets import QSvgWidget
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
 
 from assets import icons
-from authentication.session import USERNAME
 from dashboard.leaderboard import Leaderboard
 from theming.theme import theme
 
@@ -25,8 +24,8 @@ class SidebarFrame(QFrame):
         radius = 20
         # Gradient
         gradient = QLinearGradient(0, 0, 0, rect.height())
-        gradient.setColorAt(0, theme.background_alternative)
-        gradient.setColorAt(1, theme.background_alternative)
+        gradient.setColorAt(0, theme.primary)
+        gradient.setColorAt(1, theme.danger)
         brush = QBrush(gradient)
         painter.setBrush(brush)
         painter.setPen(QPen(theme.text, 1))
@@ -49,7 +48,7 @@ class DashboardSidebar(SidebarFrame):
         sidebar_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.icon_clicked_extenal = sidebar_icon_clicked;
 
-        icon_paths : list[str] = ["home-tinted.svg", "file-plus-outline.svg", "settings-outline.svg"]
+        icon_paths : list[str] = ["home.svg", "docs-inverted.svg", "settings-inverted.svg"]
         self.icons = [];
 
         for idx, path in enumerate(icon_paths):
@@ -68,9 +67,9 @@ class DashboardSidebar(SidebarFrame):
 
     def icon_clicked(self, idx : int):
         icon_paths = [
-            ("home-tinted.svg", "home-outline.svg"),
-            ("file-plus-tinted.svg", "file-plus-outline.svg"),
-            ("settings-tinted.svg", "settings-outline.svg"),
+            ("home.svg", "home-inverted.svg"),
+            ("docs.svg", "docs-inverted.svg"),
+            ("settings.svg", "settings-inverted.svg"),
         ]
         for i, icon_widget in enumerate(self.icons):
             selected_path, unselected_path = icon_paths[i]
@@ -78,9 +77,10 @@ class DashboardSidebar(SidebarFrame):
         self.icon_clicked_extenal(idx);
 
 class DashboardRightPanel(QFrame):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, username, *args, **kwargs):
         super().__init__(*args, **kwargs);
         self.setMinimumWidth(400);
+
         self.setStyleSheet(f'background-color: {theme.background_alternative.name()}; border-radius: 20px;')
         right_panel_layout = QVBoxLayout(self)
         # User profile section
@@ -97,7 +97,7 @@ class DashboardRightPanel(QFrame):
         notif_icon.setFixedSize(28, 28)
         notif_icon.setStyleSheet('background: transparent; margin-right: 8px;')
         # User name
-        user_name = QLabel(USERNAME)
+        user_name = QLabel(username)
         user_name.setStyleSheet(f'color: {theme.text.name()}; font-size: 15px; font-weight: bold; padding: 0 12px;')
         user_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         # Profile picture (circle placeholder)

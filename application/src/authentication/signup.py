@@ -7,6 +7,7 @@ from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QCursor, QIcon
 import requests
 import routes
+from theming.theme import theme
 
 from .styles import STYLES
 from assets.icons import icons
@@ -24,9 +25,9 @@ class SignUpScreen(QWidget):
 
         # === LEFT PANEL ===
         left_panel = QFrame()
-        left_panel.setStyleSheet("""
+        left_panel.setStyleSheet(f"""
             background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-            stop:0 #3AA9AD, stop:1 red);
+            stop:0 {theme.primary.name()}, stop:1 {theme.danger.name()});
             border-top-left-radius: 10px;
             border-bottom-left-radius: 10px;
         """)
@@ -36,11 +37,11 @@ class SignUpScreen(QWidget):
         left_layout.setContentsMargins(40, 40, 40, 40)
 
         title_label = QLabel("Sign Up")
-        title_label.setStyleSheet(STYLES["titleText"] + "; background: transparent;")
+        title_label.setStyleSheet(STYLES["titleTextInverted"] + "; background: transparent;")
         title_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         description = QLabel("Enter your details to create a new account")
-        description.setStyleSheet(STYLES["normalText"] + "; background: transparent;")
+        description.setStyleSheet(STYLES["normalTextInverted"] + "; background: transparent;")
         description.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         left_layout.addWidget(title_label, alignment=Qt.AlignmentFlag.AlignTop)
@@ -50,8 +51,8 @@ class SignUpScreen(QWidget):
 
         # === RIGHT PANEL ===
         right_panel = QFrame()
-        right_panel.setStyleSheet("""
-            background-color: white;
+        right_panel.setStyleSheet(f"""
+            background-color: {theme.background.name()};
             border-top-right-radius: 10px;
             border-bottom-right-radius: 10px;
         """)

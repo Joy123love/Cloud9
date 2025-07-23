@@ -7,6 +7,7 @@ from coding.details import ChallengeDetails
 set_background_style: Optional[Callable[[Optional[str]], None]] = None;
 reset_palette: Optional[Callable[[], None]] = None;
 set_colour_role: Optional[Callable[[QPalette.ColorRole], None]] = None;
+set_user: Optional[Callable[[str, str], None]] = None;
 
 # Routes
 open_dashboard : Optional[Callable[[], None]] = None;

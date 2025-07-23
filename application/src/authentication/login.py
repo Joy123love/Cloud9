@@ -10,6 +10,7 @@ import routes
 import platform
 
 from assets.icons import icons
+from theming.theme import theme
 
 from .styles import STYLES
 
@@ -37,9 +38,9 @@ class LoginScreen(QWidget):
 
         # === LEFT PANEL ===
         left_panel = QFrame()
-        left_panel.setStyleSheet("""
+        left_panel.setStyleSheet(f"""
             background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-            stop:0 #3AA9AD, stop:1 red);
+            stop:0 {theme.primary.name()}, stop:1 {theme.danger.name()});
             border-top-left-radius: 10px;
             border-bottom-left-radius: 10px;
         """)
@@ -49,11 +50,11 @@ class LoginScreen(QWidget):
         left_layout.setContentsMargins(40, 40, 40, 40)
 
         title_label = QLabel("Sign Up")
-        title_label.setStyleSheet(STYLES["titleText"] + "; background: transparent;")
+        title_label.setStyleSheet(STYLES["titleTextInverted"] + "; background: transparent;")
         title_label.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         description = QLabel("Enter your personal info and create new account")
-        description.setStyleSheet(STYLES["normalText"]  + "; background: transparent;")
+        description.setStyleSheet(STYLES["normalTextInverted"]  + "; background: transparent;")
         description.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         sign_up_btn = QPushButton("Sign Up")
@@ -68,8 +69,8 @@ class LoginScreen(QWidget):
 
         # === RIGHT PANEL ===
         right_panel = QFrame()
-        right_panel.setStyleSheet("""
-            background-color: white;
+        right_panel.setStyleSheet(f"""
+            background-color: {theme.background.name()};
             border-top-right-radius: 10px;
             border-bottom-right-radius: 10px;
         """)
@@ -151,10 +152,10 @@ class LoginScreen(QWidget):
             )
             if response.status_code == 200:
                 show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Success", "Logged in successfully!")
-                from .session import USER_ID, USERNAME
-                USERNAME = response.json().get('username', email.split('@')[0])
-                USER_ID = response.json().get('user_id', 0)
+
                 if routes.open_dashboard:
+                    if routes.set_user:
+                        routes.set_user(response.json().get('id', 0), response.json().get('username', email.split('@')[0]))
                     routes.open_dashboard()
             else:
                 msg = response.json().get('message', 'Login failed.')
@@ -166,4 +167,4 @@ class LoginScreen(QWidget):
     def handle_continue_without_signin(self):
         show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Guest Login", "Continuing as guest.")
         if routes.open_dashboard:
-            routes.open_dashboard("Guest")
+            routes.open_dashboard()

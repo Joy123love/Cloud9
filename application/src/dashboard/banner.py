@@ -3,7 +3,6 @@ from PyQt6.QtCore import QRectF, Qt
 from PyQt6.QtGui import QPainter, QPainterPath, QPixmap
 from PyQt6.QtWidgets import QFrame, QLabel, QVBoxLayout, QWidget
 
-from authentication.session import USERNAME
 from theming.theme import theme
 from utils import get_project_root
 
@@ -38,13 +37,12 @@ class BannerFrame(QFrame):
         super().paintEvent(event)
 
 
-class GreetingBanner(QWidget):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs);
-        greeting_frame = BannerFrame(f"{get_project_root()}/src/assets/images/banner2.jpeg")
-        greeting_layout = QVBoxLayout(greeting_frame)
+class GreetingBanner(BannerFrame):
+    def __init__(self, username, *args, **kwargs):
+        super().__init__(f"{get_project_root()}/src/assets/images/banner2.jpeg", *args, **kwargs);
+        greeting_layout = QVBoxLayout(self)
         greeting_layout.setContentsMargins(32, 16, 32, 16)
-        greeting_label = QLabel(f'Hello, {USERNAME}')
+        greeting_label = QLabel(f'Hello, {username}')
         greeting_label.setStyleSheet('color: #ffffff; font-size: 24px; font-weight: bold; background: transparent;')
         greeting_sub = QLabel('Welcome back to our platform')
         greeting_sub.setStyleSheet('color: #b0c4de; font-size: 14px; background: transparent;')

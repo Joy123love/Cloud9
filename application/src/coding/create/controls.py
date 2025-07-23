@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QDockWidget, QHBoxLayout, QLabel, QListWidget, QList
 from coding.editor.widget import font, theme
 
 class CreateMenu(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, run, submit, *args, **kwargs):
         super().__init__(*args, **kwargs);
         layout = QHBoxLayout();
         
@@ -23,6 +23,9 @@ class CreateMenu(QWidget):
         self.run.setAutoFillBackground(True);
         self.run.setStyleSheet(f"background-color : {theme.background_alternative.name()};color: {theme.secondary.name()}; border-radius: 10px; padding : 5px");
         layout.addWidget(self.run, 0, Qt.AlignmentFlag.AlignRight);
+
+        self.run.mousePressEvent = lambda e : run();
+        self.submit.mousePressEvent = lambda e : submit();
 
         layout.setSpacing(0);
         layout.setDirection(QHBoxLayout.Direction.RightToLeft)

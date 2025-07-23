@@ -1,18 +1,28 @@
 from functools import partial
 from typing import Any
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QScrollArea, QSizePolicy, QWidget
 
+from utils import get_project_root
+
 class PopularCard(QFrame):
-    def __init__(self, name : str, func, *args, **kwargs):
+    def __init__(self, name : str, func, image : str, *args, **kwargs):
         super().__init__(*args, **kwargs);
-        self.setFixedSize(140, 160)
+        self.image_path = f"{get_project_root()}/src/assets/images/{image}"
+
+        self.setMinimumSize(140, 160)
         self.setStyleSheet('background-color: rgba(117,178,222,0.15); border-radius: 18px;')
         self.mousePressEvent = partial(func);
-        card_label = QLabel(name, self)
+        card_label = QLabel("", self)
+        # self.image = QPixmap(self.image_path).scaledToHeight(int(self.height() / 2))
+        # card_label.setPixmap(self.image);
         card_label.setStyleSheet('color: #fff; font-size: 16px; font-weight: bold;')
         card_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        card_label.setGeometry(0, 60, 140, 40)
+        
+        label = QLabel(name, self)
+        label.setStyleSheet('color: #fff; font-size: 16px; font-weight: bold;')
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
 class PopularCards(QWidget):
@@ -31,13 +41,15 @@ class PopularCards(QWidget):
         scroll_layout.setSpacing(6)
         
         for game in games:
-            card = PopularCard(game["name"], game["func"])
+            card = PopularCard(game["name"], game["func"], game["image"])
             scroll_layout.addWidget(card)
 
         self.setLayout(scroll_layout)
 class GameCard(QFrame):
-    def __init__(self, name : str, func, *args, **kwargs):
+    def __init__(self, name : str, func, image, *args, **kwargs):
         super().__init__(*args, **kwargs);
+        self.image_path = f"{get_project_root()}/src/assets/images/{image}"
+        self.image = QImage(self.image_path)
         self.setMinimumSize(140, 220)
         self.setMaximumSize(300, 300)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -56,7 +68,7 @@ class GamesCards(QWidget):
         games_grid.setContentsMargins(0, 0, 0, 0)
         num_columns = 3
         for i, game in enumerate(games):
-            vcard = GameCard(game["name"], game["func"])
+            vcard = GameCard(game["name"], game["func"], game["image"])
             row = i // num_columns
             col = i % num_columns
             games_grid.addWidget(vcard, row, col)

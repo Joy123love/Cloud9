@@ -40,7 +40,7 @@ def register():
 def login():
     data = request.get_json()
     email = data.get("email")
-    password = data.get("password")
+    password : str = data.get("password")
 
     user = User.query.filter_by(email=email).first()
 

@@ -92,6 +92,7 @@ class DashboardFiles(QWidget):
 
     def enter_selection_mode(self):
         self.selection_mode = True
+        self.selected_files.clear()
         for i, file in enumerate(self.file_rects):
             file.checkbox.setVisible(True)
             file.checkbox.setChecked(False)
@@ -99,6 +100,7 @@ class DashboardFiles(QWidget):
 
     def exit_selection_mode(self):
         self.selection_mode = False
+        self.selected_files.clear()
         for i, file in enumerate(self.file_rects):
             file.checkbox.setVisible(False)
             file.checkbox.setChecked(False)

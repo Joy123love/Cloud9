@@ -1,8 +1,10 @@
 from enum import Enum
+from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QApplication, QDockWidget, QMainWindow, QStackedWidget, QTabWidget, QWidget
 from coding.details import ChallengeDetails
+
 
 from theming.theme import get_palette_from_theme, theme
 import routes
@@ -12,10 +14,11 @@ import sys
 class Screens(QStackedWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
-        self.current_username = "Guest"
         self.setup_routes();
         self.setup_screens();
         self.dock = None;
+        self.username = "Guest";
+        self.user_id=None;
 
     def setup_routes(self):
         routes.open_switch_runner = self.open_switch_runner
@@ -24,6 +27,7 @@ class Screens(QStackedWidget):
         routes.open_dashboard = self.open_dashboard_screen
         routes.open_coding_create = self.open_coding_create_screen
         routes.open_coding_play = self.open_coding_play_screen
+        routes.set_user = self.set_user
     
     def setup_screens(self):
         from authentication.login import LoginScreen
@@ -35,12 +39,13 @@ class Screens(QStackedWidget):
         from dashboard.screen import DashboardScreen
         self.dashboard = DashboardScreen()
         self.addWidget(self.dashboard)
-        from coding.create.screen import CreateCodingGameScreen
-        self.coding_create = CreateCodingGameScreen()
-        self.addWidget(self.coding_create)
+
         from coding.play.screen import PlayCodingGameScreen
         self.coding_play = PlayCodingGameScreen()
         self.addWidget(self.coding_play)
+        from coding.create.screen import CreateCodingGameScreen
+        self.coding_create = CreateCodingGameScreen()
+        self.addWidget(self.coding_create)
         from switch_runner.screen import SwitchRunnerScreen
         self.switch_runner = SwitchRunnerScreen()
         self.addWidget(self.switch_runner)
@@ -62,33 +67,44 @@ class Screens(QStackedWidget):
         self.open_screen(SWITCH_RUNNER);
         self.switch_runner.play();
     
-    def open_dashboard_screen(self, username="Guest"):
-        self.current_username = username
-        if routes.set_colour_role:
-            routes.set_colour_role(QPalette.ColorRole.LinkVisited);
+    def open_dashboard_screen(self):
         from dashboard.screen import DashboardScreen
-        self.removeWidget(self.dashboard)
-        self.dashboard = DashboardScreen()
+
+        self.dashboard.close();
+        self.removeWidget(self.dashboard);
+        self.dashboard = DashboardScreen(self.username)
         self.insertWidget(MENU, self.dashboard)
         self.open_screen(MENU)
-        self.open_screen(MENU)
+
+
+    def set_user(self, user_id : str, name : str):
+        self.user_id = user_id;
+        self.username = name;
 
     def open_coding_play_screen(self, details : ChallengeDetails):
         from coding.play.sidebar import PlaySidebar
         from coding.play.screen import PlayCodingGameScreen
+
         self.setPalette(get_palette_from_theme(theme));
         self.open_screen(PLAY_CODING)
         screen = self.currentWidget();
-        if screen is PlayCodingGameScreen:
-            screen.load(details);
+        screen.load(details);
         self.dock = PlaySidebar(details);
         window.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock);
 
     def open_coding_create_screen(self, details : ChallengeDetails):
         from coding.create.sidebar import CreateSidebar
-        # self.setPalette(get_palette_from_theme(theme));
         self.open_screen(CREATE_CODING)
+        screen = self.currentWidget();
+        if self.user_id:
+            details.user_id = int(self.user_id)
+        else:
+            from authentication.login import show_messagebox
+            show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Error", "Coding mini-game requires login");
+
         self.dock = CreateSidebar(details);
+        screen.load(details, self.dock);
+
         window.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock);
     
 class ExtraMainScreen(QMainWindow):
@@ -100,6 +116,7 @@ class ExtraMainScreen(QMainWindow):
         routes.set_background_style = self.setStyleSheet
         routes.reset_palette = lambda : self.setPalette(get_palette_from_theme(theme));
         routes.set_colour_role = lambda x: self.setBackgroundRole(x);
+
         self.setPalette(get_palette_from_theme(theme));
 
 
