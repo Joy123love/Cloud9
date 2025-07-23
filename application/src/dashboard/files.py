@@ -17,6 +17,7 @@ class FileRow(QFrame):
         
         self.checkbox = QCheckBox()
         self.checkbox.setStyleSheet("QCheckBox { margin-left: 12px; margin-right: 8px; } QCheckBox::indicator { width: 18px; height: 18px; border-radius: 4px; background: "+theme.background_alternative.name()+"; border: 1.5px solid " + theme.background.name() + "; } QCheckBox::indicator:checked { background: " + theme.primary.name() + ";}")
+        self.checkbox.setVisible(False);
         file_row.addWidget(self.checkbox)
         
         file_label = QLabel(filename)

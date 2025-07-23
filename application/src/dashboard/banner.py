@@ -8,11 +8,11 @@ from utils import get_project_root
 
 
 class BannerFrame(QFrame):
-    def __init__(self, image_path, parent=None):
+    def __init__(self, image_path, opacity=0.45, parent=None):
         super().__init__(parent)
         self.image_path = image_path
         self.pixmap = QPixmap(self.image_path)
-        self.setMinimumHeight(120)
+        self.opacity = opacity;
         self.setStyleSheet('border-radius: 16px;')
 
     def paintEvent(self, event):
@@ -30,7 +30,7 @@ class BannerFrame(QFrame):
         # Draw semi-transparent overlay
         # overlay_color = QColor(20, 30, 50, int(255 * 0.45))  # 45% opacity dark overlay
         overlay_color = theme.background_alternative
-        overlay_color.setAlpha(int(255 * 0.45));
+        overlay_color.setAlpha(int(255 * self.opacity));
         painter.setBrush(overlay_color)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.drawRoundedRect(rect, 16, 16)
@@ -40,6 +40,7 @@ class BannerFrame(QFrame):
 class GreetingBanner(BannerFrame):
     def __init__(self, username, *args, **kwargs):
         super().__init__(f"{get_project_root()}/src/assets/images/banner2.jpeg", *args, **kwargs);
+        self.setMinimumHeight(120);
         greeting_layout = QVBoxLayout(self)
         greeting_layout.setContentsMargins(32, 16, 32, 16)
         greeting_label = QLabel(f'Hello, {username}')
