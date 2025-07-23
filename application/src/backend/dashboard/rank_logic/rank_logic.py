@@ -1,0 +1,1 @@
+possibleRank = ("Legend","GrandMaster","Proffessional","Intermediate","Novice","Beginner")

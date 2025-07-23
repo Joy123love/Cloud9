@@ -99,6 +99,8 @@ class DashboardScreen(QWidget):
         settings_icon = QSvgWidget(icons.get_path("settings-outline.svg"));
         settings_icon.setFixedSize(32, 32)
         settings_icon.setStyleSheet('background: transparent;')
+
+
         self.sidebar_icons = [home_icon, file_plus_icon, settings_icon]
         # Add click event handling
         
