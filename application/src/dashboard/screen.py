@@ -121,11 +121,10 @@ class DashboardScreen(QWidget):
 
     def update_search_row_icons(self):
         def get_icon(path : str, func) -> QSvgWidget:
-            icon = QSvgWidget(icons.get_path("select.svg"));
+            icon = QSvgWidget(path);
             icon.setFixedSize(28, 28);
             icon.setStyleSheet('background: transparent; margin-right: 10px;')
             icon.mousePressEvent = func
-
             return icon
 
         # Clear the search row
@@ -145,16 +144,14 @@ class DashboardScreen(QWidget):
             if file_count > 0:
                 select_icon = get_icon(icons.get_path("select.svg"), lambda e: self.enter_selection_mode());
                 self.search_bar.search_row.addWidget(select_icon)
-            add_file_icon = get_icon(icons.get_path("add-file.svg"), lambda e: self.open_add_file_dialog());
+            add_file_icon = get_icon(icons.get_path("add-file.svg"), lambda e: self.files.open_add_file_dialog());
             self.search_bar.search_row.addWidget(add_file_icon)
         else:
             x_icon = get_icon(icons.get_path("x.svg"), lambda e: self.exit_selection_mode());
             self.search_bar.search_row.addWidget(x_icon)
-            
             all_selected = all(file.checkbox.isChecked() for file in self.files.file_rects) and file_count > 0
             select_all_icon = get_icon(icons.get_path('deselect-all.svg' if all_selected else 'select-all.svg'), lambda e: self.toggle_select_all_files());
             self.search_bar.search_row.addWidget(select_all_icon)
-            
             delete_icon = get_icon(icons.get_path('delete.svg'), lambda e: self.delete_selected_files())
             self.search_bar.search_row.addWidget(delete_icon)
         self.search_bar.search_row.update()

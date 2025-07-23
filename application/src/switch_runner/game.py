@@ -1,12 +1,18 @@
+import sys
+import os
+
+# Ensure the parent directory is in sys.path for absolute imports
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from enum import Enum
 import pygame
 import random
-import os
 import time
 import math
 
-from .constants import *
-from .helper import *
+from switch_runner.constants import *
+from switch_runner.helper import *
 
 class SwitchRunnerGame():
     def __init__(self):
@@ -586,3 +592,12 @@ class SwitchRunnerGame():
                     self.ball_glide = GLIDE_FRAMES
             pygame.display.flip()
             clock.tick(FPS)
+
+if __name__ == "__main__":
+    import pygame
+    print("[DEBUG] Starting SwitchRunnerGame main block")
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption('Switch Runner')
+    game = SwitchRunnerGame()
+    game.run(screen)

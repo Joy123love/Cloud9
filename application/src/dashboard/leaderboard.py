@@ -141,12 +141,34 @@ class Leaderboard(QWidget):
         # If no local data, show error message
         self.show_empty_message()
 
+    def get_leaderboard_text(self):
+        lines = []
+        for i, user in enumerate(self.leaderboard_data):
+            username = user.get("username", "N/A")
+            points = user.get("points", 0)
+            lines.append(f"{i+1}. {username} {points}pts")
+        return "\n".join(lines)
+
+    def show_leaderboard_text(self):
+        # Remove table if present
+        if hasattr(self, 'table') and self.table is not None:
+            self.table.hide()
+        # Remove old label if present
+        if hasattr(self, 'leaderboard_label'):
+            self.main_layout.removeWidget(self.leaderboard_label)
+            self.leaderboard_label.deleteLater()
+        self.leaderboard_label = QLabel(self.get_leaderboard_text())
+        self.leaderboard_label.setStyleSheet(f"color: {theme.text.name()}; font-size: 16px; font-weight: bold;")
+        self.leaderboard_label.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.main_layout.addWidget(self.leaderboard_label)
+
     def update_ui_with_data(self):
         self.leaderboard_data.sort(key=lambda x: x.get("points", 0), reverse=True)
         self.populate_top_cards()
-        self.populate_table()
+        # self.populate_table()
+        self.show_leaderboard_text()
         # self.top_scroll.show()
-        self.table.show()
+        # self.table.show()
         self.search_input.setEnabled(True)
 
         # If error message label exists, remove it

@@ -10,6 +10,8 @@ from theming.theme import get_palette_from_theme, theme
 import routes
 from constants import *
 import sys
+import subprocess
+import os
 
 class Screens(QStackedWidget):
     def __init__(self, *args, **kwargs):
@@ -64,8 +66,15 @@ class Screens(QStackedWidget):
         self.open_screen(SIGNUP) 
     
     def open_switch_runner(self):
-        self.open_screen(SWITCH_RUNNER);
-        self.switch_runner.play();
+        # Launch the new Switch Runner game as a separate process
+        script_path = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                "switch_runner/game.py"
+            )
+        )
+        print(f"Launching Switch Runner at: {script_path}")
+        subprocess.Popen([sys.executable, script_path])
     
     def open_dashboard_screen(self):
         from dashboard.screen import DashboardScreen
