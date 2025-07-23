@@ -38,7 +38,7 @@ class LeaderCard(QFrame):
         super().__init__()
         self.setMinimumSize(80, 100)
         self.setStyleSheet("""
-            background-color: rgba(117, 178, 222, 0.15);
+            background-color: transparent;
             border-radius: 18px;
         """)
 
@@ -80,7 +80,7 @@ class Leaderboard(QWidget):
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Search users...")
         self.search_input.setStyleSheet(f"""
-            background-color: rgba(117, 178, 222, 0.15);
+            background-color: {theme.background.name()};
             color: {theme.text.name()};
             border: none;
             border-radius: 10px;
@@ -93,22 +93,22 @@ class Leaderboard(QWidget):
         self.table = QTableWidget()
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Rank", "Username", "Points"])
-        self.table.setStyleSheet("""
-            QHeaderView::section {
-                background-color: rgba(117, 178, 222, 0.15);
-                color: white;
+        self.table.setStyleSheet(f"""
+            QHeaderView::section {{
+                background-color: {theme.primary.name()};
+                color: {theme.background.name()};
                 padding: 8px;
                 border: none;
-            }
-            QTableWidget {
-                background-color: rgba(255, 255, 255, 0.05);
-                color: white;
+            }}
+            QTableWidget {{
+                background-color: {theme.background.name()};
+                color: {theme.text.name()};
                 border: none;
-                gridline-color: #333333;
-            }
-            QTableWidget::item {
+                gridline-color: {theme.background_alternative.name()};
+            }}
+            QTableWidget::item {{
                 padding: 6px;
-            }
+            }}
         """)
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.verticalHeader().setVisible(False)
