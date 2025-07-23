@@ -64,22 +64,17 @@ class Leaderboard(QWidget):
 
     def setup_ui(self):
         self.main_layout = QVBoxLayout(self)
-        # self.main_layout.setContentsMargins(30, 30, 30, 30)
         self.main_layout.setSpacing(5)
 
         self.header_label = QLabel("Leaderboard")
         self.header_label.setStyleSheet(f"color: {theme.text.name()}; font-size: 24px; font-weight: bold;")
         self.main_layout.addWidget(self.header_label)
 
-        # self.top_scroll = QScrollArea()
-        # self.top_scroll.setWidgetResizable(True)
-        # self.top_scroll.setStyleSheet("border: none;")
         self.top_widget = QWidget()
         self.top_layout = QHBoxLayout(self.top_widget)
         self.top_layout.setContentsMargins(0, 0, 0, 0)
         self.top_layout.setSpacing(5)
         self.top_widget.setLayout(self.top_layout)
-        # self.top_scroll.setWidget(self.top_widget)
         self.main_layout.addWidget(self.top_widget)
 
         self.search_input = QLineEdit()
@@ -120,9 +115,6 @@ class Leaderboard(QWidget):
         self.table.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        # leaderboard_scroll = QScrollArea();
-        # leaderboard_scroll.setWidget(self.table)
-        # self.main_layout.addWidget(leaderboard_scroll)
         self.main_layout.addWidget(self.table);
 
     def start_fetch(self):
