@@ -186,7 +186,8 @@ class Leaderboard(QWidget):
         self.table.clearContents()
         self.table.setRowCount(0)
         self.search_input.setEnabled(False)
-        self.top_scroll.hide()
+        if hasattr(self, 'top_scroll') and self.top_scroll is not None:
+            self.top_scroll.hide()
         self.table.hide()
 
         self.empty_label = QLabel("Unable to load leaderboard at this time")

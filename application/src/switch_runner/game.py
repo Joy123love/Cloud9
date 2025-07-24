@@ -10,6 +10,10 @@ import pygame
 import random
 import time
 import math
+import glob
+import requests
+import json
+import pygame.mixer
 
 from switch_runner.constants import *
 from switch_runner.helper import *
@@ -28,6 +32,27 @@ class SwitchRunnerGame():
         self.setup_story();
         self.setup_state();
         self.setup_xp_coin();
+        # Initialize question/AI state
+        self.question_mode = False
+        self.question_data = None
+        self.user_text = ''
+        self.question_feedback = ''
+        self.question_feedback_timer = 0
+        self.answer_checking = False
+        self.show_entity_decision = False
+        self.entity_decision_time = 0
+        self.ai_thread = None
+        self.ai_result = None
+        self.next_question_time = time.time() + random.choice(MATH_INTERVALS)
+        # Play background music
+        music_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../assets/audio/Lukrembo.mp3'))
+        try:
+            pygame.mixer.init()
+            pygame.mixer.music.load(music_path)
+            pygame.mixer.music.set_volume(0.5)
+            pygame.mixer.music.play(-1)  # Loop forever
+        except Exception as e:
+            print(f"[ERROR] Could not play background music: {e}")
     
     def setup_background(self) :
         self.bg_images = []
@@ -75,7 +100,6 @@ class SwitchRunnerGame():
         self.spawn_interval = 90  # Less frequent Obstacles
 
     def setup_state(self):
-        self.math_mode = False;
         self.game_over = False;
         self.story_mode = True;
 
@@ -133,29 +157,37 @@ class SwitchRunnerGame():
         spikes_height = spikes_sheet.get_height()
         self.spikes_frames = [spikes_sheet.subsurface(pygame.Rect(i * spikes_width, 0, spikes_width, spikes_height)) for i in range(SPIKES_FRAMES)]
 
-    def math_encounter_trigger(self):
-        if not self.story_mode and not self.math_mode and not self.game_over and self.now > self.next_math_time:
-            self.math_mode = True;
-            # Generate math question
-            a, b = random.randint(2, 12), random.randint(2, 12)
-            op = random.choice(['+', '-', '*'])
-            if op == '+':
-                answer = a + b
-            elif op == '-':
-                answer = a - b
-            else:
-                answer = a * b
-            wrong1 = answer + random.choice([-3, -2, -1, 1, 2, 3])
-            wrong2 = answer + random.choice([-6, -4, 4, 6])
-            options = [answer, wrong1, wrong2]
-            random.shuffle(options)
-            self.math_correct_index = options.index(answer)
-            self.math_question = (f"Answer this question correct and you will get a reward.",
-                            f"What is {a} {op} {b}?")
-            self.math_options = options
-            self.math_selected = 0
-            self.math_feedback = ''
-            self.math_feedback_timer = 0
+    def ai_check_answer(self, question, correct_answer, user_answer):
+        HF_TOKEN = ""  # Paste your Hugging Face API token here
+        API_URL = "https://router.huggingface.co/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {HF_TOKEN}",
+        }
+        prompt = (
+            f"Question: {question}\n"
+            f"User's answer: {user_answer}\n"
+            f"Correct answer: {correct_answer}\n"
+            "Is the user's answer correct? Reply only Yes or No"
+        )
+        payload = {
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "model": "deepseek-ai/DeepSeek-R1:novita"
+        }
+        try:
+            resp = requests.post(API_URL, headers=headers, json=payload, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+            content = data["choices"][0]["message"]["content"]
+            if content.lower().startswith("yes"):
+                return True, content
+            return False, content
+        except Exception as e:
+            print(f"[ERROR] AI check failed: {e}")
+            return False, f"AI check failed: {e}"
+
+    # Remove math_encounter_trigger and all uses of self.math_mode, self.math_question, self.math_options, etc.
 
 
     def run(self,screen):
@@ -166,107 +198,123 @@ class SwitchRunnerGame():
         while running:
             self.now = time.time()
             # Handle invincibility timer
-            if self.invincible and not self.story_mode and not self.math_mode:
+            if self.invincible and not self.story_mode and not self.question_mode:
                 if time.time() > self.invincible_timer:
                     self.invincible = False
-
-            self.math_encounter_trigger();
-
-            if self.math_mode:
+            # Question encounter trigger
+            if not self.story_mode and not self.question_mode and not self.game_over and self.now > self.next_question_time:
+                self.question_mode = True
+                # Pick a random question from a random JSON file in jsons/
+                json_files = glob.glob(os.path.join('jsons', '*.json'))
+                if not json_files:
+                    self.question_data = {"question": "No questions available.", "answer": ""}
+                else:
+                    chosen_file = random.choice(json_files)
+                    with open(chosen_file, 'r', encoding='utf-8') as f:
+                        questions = json.load(f)
+                    if questions:
+                        self.question_data = random.choice(questions)
+                    else:
+                        self.question_data = {"question": "No questions in file.", "answer": ""}
+                self.user_text = ''
+                self.question_feedback = ''
+                self.question_feedback_timer = 0
+                self.answer_checking = False
+                self.show_entity_decision = False
+                self.entity_decision_time = 0
+                self.ai_result = None
+            if self.question_mode:
+                print(f"[DEBUG] In question_mode. user_text='{self.user_text}' answer_checking={self.answer_checking} show_entity_decision={self.show_entity_decision}")
                 screen.fill((30, 30, 40))
                 # Draw entity with rounded corners at top center
                 blit_rounded(screen, self.entity_img, (WIDTH//2 - 110, 60), radius=15)
-                # Draw question box (taller to fit all text)
+                # Draw question box
                 rect_w = 1000
                 rect_h = 240
                 rect_x = WIDTH//2 - rect_w//2
                 rect_y = 260
                 pygame.draw.rect(screen, (40, 40, 60), (rect_x, rect_y, rect_w, rect_h), border_radius=20)
                 pygame.draw.rect(screen, (100, 100, 160), (rect_x, rect_y, rect_w, rect_h), 4, border_radius=20)
-                # Render and center both lines inside the rectangle
-                question_font = pygame.font.SysFont('arial', 44, bold=True)
-                if self.math_question is None:
-                    return
-                qsurf1 = question_font.render(self.math_question[0], True, (255,255,255))
-                qsurf2 = question_font.render(self.math_question[1], True, (255,255,255))
-                q1_y = rect_y + 28
-                q2_y = q1_y + qsurf1.get_height() + 10
-                screen.blit(qsurf1, (rect_x + (rect_w - qsurf1.get_width())//2, q1_y))
-                screen.blit(qsurf2, (rect_x + (rect_w - qsurf2.get_width())//2, q2_y))
-                # Move options further down
-                options_y = q2_y + qsurf2.get_height() + 32
-                for i, opt in enumerate(self.math_options):
-                    color = (255,255,0) if i == self.math_selected else (200,200,200)
-                    osurf = font.render(str(opt), True, color)
-                    screen.blit(osurf, (WIDTH//2 - 120 + i*120, options_y))
+                # Render and wrap question text
+                question_font = pygame.font.SysFont('arial', 38, bold=True)
+                def wrap_text(text, font, max_width):
+                    words = text.split(' ')
+                    lines = []
+                    line = ''
+                    for word in words:
+                        test_line = line + word + ' '
+                        if font.size(test_line)[0] < max_width:
+                            line = test_line
+                        else:
+                            lines.append(line)
+                            line = word + ' '
+                    lines.append(line)
+                    return lines
+                question_lines = wrap_text(self.question_data['question'], question_font, rect_w - 80)
+                for i, l in enumerate(question_lines):
+                    qsurf = question_font.render(l.strip(), True, (255,255,255))
+                    screen.blit(qsurf, (rect_x + 40, rect_y + 40 + i*44))
+                # Draw input box
+                input_rect = pygame.Rect(rect_x + 60, rect_y + 120, rect_w - 120, 48)
+                pygame.draw.rect(screen, (60, 60, 90), input_rect, border_radius=12)
+                pygame.draw.rect(screen, (180, 180, 220), input_rect, 2, border_radius=12)
+                input_font = pygame.font.SysFont('arial', 32)
+                input_surf = input_font.render(self.user_text, True, (255,255,0))
+                screen.blit(input_surf, (input_rect.x + 10, input_rect.y + 8))
                 # Feedback
-                if self.math_feedback:
-                    if 'Wrong' in self.math_feedback:
-                        fsurf = font.render(self.math_feedback, True, (255, 99, 71))
-                        screen.blit(fsurf, (WIDTH//2 - fsurf.get_width()//2, 500))
-                        # Show Hahahahah after answer for a moment
-                        if time.time() > self.math_feedback_timer:
-                            laugh_font = pygame.font.SysFont('arial', 54, bold=True)
-                            laugh_text = laugh_font.render('Hahahahah!', True, (255, 99, 71))
-                            screen.blit(laugh_text, (WIDTH//2 - laugh_text.get_width()//2, 570))
-                            pygame.display.flip()
-                            pygame.time.delay(int(MATH_LAUGH_DURATION * 1000))
-                            # End math mode, reset timer
-                            self.math_mode = False
-                            self.next_math_time = time.time() + random.choice(MATH_INTERVALS)
-                            continue
+                if self.answer_checking:
+                    checking_font = pygame.font.SysFont('arial', 30, bold=True)
+                    checking_surf = checking_font.render('Checking answer...', True, (180, 180, 220))
+                    screen.blit(checking_surf, (WIDTH//2 - checking_surf.get_width()//2, rect_y + rect_h + 20))
+                elif self.show_entity_decision:
+                    # Show Correct or Wrong answer. Hahahah!
+                    result_font = pygame.font.SysFont('arial', 54, bold=True)
+                    if self.question_feedback.startswith('Correct'):
+                        result_text = 'Correct!'
+                        color = (80, 220, 120)
                     else:
-                        fsurf = font.render(self.math_feedback, True, (80, 220, 120))
-                        screen.blit(fsurf, (WIDTH//2 - fsurf.get_width()//2, 500))
+                        result_text = 'Wrong answer. Hahahah!'
+                        color = (255, 99, 71)
+                    rsurf = result_font.render(result_text, True, color)
+                    screen.blit(rsurf, (WIDTH//2 - rsurf.get_width()//2, rect_y + rect_h + 40))
+                elif self.question_feedback:
+                    color = (80, 220, 120) if self.question_feedback.startswith('Correct') else (255, 99, 71)
+                    fsurf = font.render(self.question_feedback, True, color)
+                    screen.blit(fsurf, (WIDTH//2 - fsurf.get_width()//2, rect_y + rect_h + 20))
                 pygame.display.flip()
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         running = False
-                    elif event.type == pygame.KEYDOWN and not self.math_feedback:
-                        if event.key in (pygame.K_LEFT, pygame.K_a):
-                            self.math_selected = (self.math_selected - 1) % 3
-                        elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                            self.math_selected = (self.math_selected + 1) % 3
-                        elif event.key in (pygame.K_SPACE, pygame.K_RETURN):
-                            if self.math_selected == self.math_correct_index:
-                                # Correct
-                                self.math_feedback = 'Correct!'
-                                xp_gain = math.ceil(self.xp / 10) + 7
-                                self.xp += xp_gain
-                                # Randomly choose prize: invincibility or heart
-                                prize_type = random.choice([POWERUP_TYPE_INVINCIBLE, POWERUP_TYPE_HEART])
-                                lane = random.randint(0, 1)
-                                powerup_x = WIDTH
-                                while True:
-                                    overlap = False
-                                    for ox, olane, frame_idx in self.obstacles:
-                                        if olane == lane and abs(ox - powerup_x) < OBSTACLE_WIDTH + POWERUP_RADIUS * 2:
-                                            overlap = True
-                                            break
-                                    if not overlap:
-                                        break
-                                    powerup_x += OBSTACLE_WIDTH + POWERUP_RADIUS * 2
-                                    if powerup_x > WIDTH + 300:  # Don't go too far off screen
-                                        break
-                                if prize_type == POWERUP_TYPE_INVINCIBLE:
-                                    duration = random.randint(5, 13)
-                                    self.powerups.append((powerup_x, lane, POWERUP_TYPE_INVINCIBLE, duration))
-                                else:
-                                    self.powerups.append((powerup_x, lane, POWERUP_TYPE_HEART))
-                            else:
-                                # Wrong
-                                self.math_feedback = f'Wrong answer. The answer is {self.math_options[self.math_correct_index]}'
-                                self.xp = max(0, self.xp - 7)
-                            self.math_feedback_timer = time.time() + 1.5
-                            # Increase intensity
-                            self.math_intensity_mult *= 1.05
-                            # Increase obstacle speed and decrease spawn interval
-                            self.obstacle_speed = int(self.obstacle_speed * self.math_intensity_mult)
-                            self.spawn_interval = max(20, int(self.spawn_interval / self.math_intensity_mult))
-                    elif event.type == pygame.KEYDOWN and self.math_feedback and 'Wrong' not in self.math_feedback and time.time() > self.math_feedback_timer:
-                        # End math mode, reset timer
-                        self.math_mode = False
-                        self.next_math_time = time.time() + random.choice(MATH_INTERVALS)
+                    elif event.type == pygame.KEYDOWN and not self.answer_checking and not self.show_entity_decision:
+                        if event.key == pygame.K_BACKSPACE:
+                            self.user_text = self.user_text[:-1]
+                        elif event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                            self.answer_checking = True
+                        elif event.key == pygame.K_ESCAPE:
+                            running = False
+                        else:
+                            if len(self.user_text) < 60 and event.unicode.isprintable():
+                                self.user_text += event.unicode
+                # If answer_checking, do the AI call
+                if self.answer_checking and self.ai_result is None:
+                    is_correct, ai_msg = self.ai_check_answer(self.question_data['question'], self.question_data['answer'], self.user_text)
+                    if is_correct:
+                        self.question_feedback = 'Correct!'
+                    else:
+                        self.question_feedback = f"Wrong! {ai_msg.strip()}"
+                    self.answer_checking = False
+                    self.show_entity_decision = True
+                    self.entity_decision_time = time.time()
+                    self.ai_result = (is_correct, ai_msg)
+                # Show entity decision for 3 seconds before continuing
+                if self.show_entity_decision:
+                    if time.time() - self.entity_decision_time >= 3.0:
+                        self.show_entity_decision = False
+                        self.question_mode = False
+                        self.next_question_time = time.time() + random.choice(MATH_INTERVALS)
+                        self.question_feedback = ''
+                        self.question_feedback_timer = 0
+                    continue
                 continue
             if self.story_mode:
                 screen.fill((30, 30, 40))
@@ -352,8 +400,8 @@ class SwitchRunnerGame():
                 screen.blit(self.bg_images[i], (x1, 0))
                 screen.blit(self.bg_images[i], (x2, 0))
             # Show warning 5 seconds before entity appears
-            if not self.story_mode and not self.math_mode and not self.game_over:
-                time_to_entity = self.next_math_time - self.now
+            if not self.story_mode and not self.question_mode and not self.game_over:
+                time_to_entity = self.next_question_time - self.now
                 if 0 < time_to_entity <= 5:
                     warn_font = pygame.font.SysFont('arial', 36, bold=True)
                     warn_text = warn_font.render('Warning: The Entity will appear soon!', True, (255, 99, 71))
