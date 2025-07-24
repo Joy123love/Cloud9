@@ -1,21 +1,29 @@
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette
-from PyQt6.QtWidgets import QDockWidget, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QScrollArea, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QDockWidget, QHBoxLayout, QLabel, QListWidget, QListWidgetItem, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 from coding.details import ChallengeDetails
 from coding.editor.widget import font, theme
+import routes
+from assets.icons import icons
 
 class SidebarTop(QWidget):
     def __init__(self, name : str, username : str, description : str, *args, **kwargs):
         super().__init__(*args, **kwargs);
         layout = QVBoxLayout();
+        
+        back = QPushButton();
+        back.setIcon(icons.cancel);
+        back.setStyleSheet(f"color: {theme.danger.name()}")
+        back.mousePressEvent = lambda e: routes.open_dashboard()
+        layout.addWidget(back);
 
         self.name = QLabel(name);
         self.name.setFont(font.heading);
         self.name.setStyleSheet(f"color: {theme.secondary.name()}")
         layout.addWidget(self.name);
 
-        self.username = QLabel(username);
+        self.username = QLabel(f"By {username}");
         self.username.setFont(font.default);
         self.username.setStyleSheet(f"color: {theme.primary.name()}")
         layout.addWidget(self.username);
@@ -26,6 +34,7 @@ class SidebarTop(QWidget):
         layout.addWidget(self.description);
         
         self.setLayout(layout);
+
 
 class Statement(QWidget):
     def __init__(self, key : str, amt : int, *args, **kwargs):
