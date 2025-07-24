@@ -96,7 +96,7 @@ class DashboardFiles(QWidget):
         os.makedirs(jsons_dir, exist_ok=True)
         json_path = os.path.join(jsons_dir, json_filename)
         # DeepSeek API call
-        HF_TOKEN = "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"  # Use your own token
+        HF_TOKEN = ""  # Use your own token
         API_URL = "https://router.huggingface.co/v1/chat/completions"
         prompt = (
             "Based on the following text, generate all quiz questions and their answers from the text. "
