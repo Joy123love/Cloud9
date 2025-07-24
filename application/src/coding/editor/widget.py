@@ -1,4 +1,8 @@
 import sys
+
+from PyQt6 import QtWidgets
+
+
 from .limits import Limits;
 from .lexer import CustomLexer; 
 from typing import Any
@@ -54,24 +58,21 @@ class CodeEditor(QsciScintilla):
         self.setBackspaceUnindents(True)
         self.setIndentationGuides(True)
         self.setReadOnly(False)
-        self.context_menu = QMenu(self)
-        self.context_menu.addAction("Run").triggered.connect(lambda : self.run())
-        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.show_context_menu)
     
-    def run(self, limits : Limits = Limits()) -> dict[str, Any]:
+    def run(self, limits : Limits = Limits()) -> dict[str, Any]|None:
         validity = limits.is_valid(self.text());
 
         if validity is None:
             locals = {};
-            exec(self.text(), locals);
+            try:
+                exec(self.text(), locals);
+            finally:
+                from authentication.login import show_messagebox
+                show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Error", "Code failed to run")
+                return None
+
             return locals
         else:
-            print("Invalid Code");
-            locals = {};
-            exec(self.text(), locals);
-            return locals
-
-
-    def show_context_menu(self, point):
-        self.context_menu.popup(self.mapToGlobal(point))
+            from authentication.login import show_messagebox
+            show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Error", "Code surpassed statement limits")
+            return None

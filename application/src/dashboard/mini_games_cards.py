@@ -9,7 +9,7 @@ from utils import get_project_root
 
 class PopularCard(BannerFrame):
     def __init__(self, name : str, func, image : str, *args, **kwargs):
-        super().__init__(f"{get_project_root()}/src/assets/images/{image}", 0, *args, **kwargs);
+        super().__init__(f"{get_project_root()}/src/assets/images/{image}", 0.3, *args, **kwargs);
         self.setMinimumSize(140, 160)
         self.setStyleSheet('background-color: rgba(117,178,222,0.15); border-radius: 18px;')
         self.mousePressEvent = partial(func);
@@ -41,7 +41,7 @@ class PopularCards(QWidget):
         self.setLayout(scroll_layout)
 class GameCard(BannerFrame):
     def __init__(self, name : str, func, image, *args, **kwargs):
-        super().__init__(f"{get_project_root()}/src/assets/images/{image}", 0, *args, **kwargs);
+        super().__init__(f"{get_project_root()}/src/assets/images/{image}", 0.3, *args, **kwargs);
         self.setMinimumSize(140, 220)
         # self.setMaximumSize(300, 300)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)

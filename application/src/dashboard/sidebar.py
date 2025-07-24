@@ -1,13 +1,18 @@
 from functools import partial
+import json
+import os
 from typing import Callable
 from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QBrush, QLinearGradient, QPainter, QPen
+from PyQt6.QtGui import QBrush, QLinearGradient, QPainter, QPen, QPixmap
 from PyQt6.QtSvgWidgets import QSvgWidget
-from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QFileDialog, QFrame, QHBoxLayout, QLabel, QScrollArea, QVBoxLayout, QWidget
+import requests
 
 from assets import icons
 from dashboard.leaderboard import Leaderboard
+from authentication.picture import FetchProfilePictureThread
+from constants import SERVER_URL
 from theming.theme import theme
 
 
@@ -67,7 +72,7 @@ class DashboardSidebar(SidebarFrame):
 
     def icon_clicked(self, idx : int):
         icon_paths = [
-            ("home.svg", "home-inverted.svg"),
+("home.svg", "home-inverted.svg"),
             ("docs.svg", "docs-inverted.svg"),
             ("settings.svg", "settings-inverted.svg"),
         ]
@@ -77,10 +82,21 @@ class DashboardSidebar(SidebarFrame):
         self.icon_clicked_extenal(idx);
 
 class DashboardRightPanel(QFrame):
-    def __init__(self, username, *args, **kwargs):
+    def __init__(self, username, user_id, *args, **kwargs):
         super().__init__(*args, **kwargs);
         self.setMinimumWidth(400);
+        self.user_id=user_id;
+        self.username = username
+        self.init_ui()
+        self.fetch_picture()
 
+    def fetch_picture(self):
+        self.profile_pic_thread = FetchProfilePictureThread(id=self.user_id);
+        self.profile_pic_thread.fetched.connect(self.profile_picture_fetched);
+        self.profile_pic_thread.start();
+
+
+    def init_ui(self):
         self.setStyleSheet(f'background-color: {theme.background_alternative.name()}; border-radius: 20px;')
         right_panel_layout = QVBoxLayout(self)
         # User profile section
@@ -89,29 +105,34 @@ class DashboardRightPanel(QFrame):
         from PyQt6.QtWidgets import QSpacerItem, QSizePolicy
         profile_container.addSpacerItem(QSpacerItem(20, 8, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
         # Top row: notification icon, name, profile pic
-        top_row = QHBoxLayout()
-        top_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.top_row = QHBoxLayout()
+        self.top_row.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         # Notification icon
         # Load and tint notification icon SVG to white
         notif_icon = QSvgWidget(icons.get_path("notifications-tinted.svg"));
         notif_icon.setFixedSize(28, 28)
         notif_icon.setStyleSheet('background: transparent; margin-right: 8px;')
         # User name
-        user_name = QLabel(username)
+        user_name = QLabel(self.username)
         user_name.setStyleSheet(f'color: {theme.text.name()}; font-size: 15px; font-weight: bold; padding: 0 12px;')
         user_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         # Profile picture (circle placeholder)
-        profile_pic = QLabel()
-        profile_pic.setMinimumSize(60, 60)
-        profile_pic.setStyleSheet(f'background-color: {theme.danger.name()}; border-radius: 30px; border: 2px solid {theme.text.name()};')
-        profile_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_pic = QLabel()
+        self.profile_pic.setMinimumSize(60, 60)
+        self.profile_pic.setMaximumSize(120, 120);
+        self.profile_pic.setStyleSheet(f'background-color: {theme.danger.name()}; border-radius: 30px; border: 2px solid {theme.text.name()};')
+        self.profile_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.profile_pic.mousePressEvent = lambda e: self.upload_profile_picture();
+        self.profile_image = QPixmap(icons.get_path("account.svg"))
+        self.profile_pic.setPixmap(self.profile_image)
+
         # Add to top row in new order
-        top_row.addWidget(notif_icon)
-        top_row.addStretch(1)
-        top_row.addWidget(user_name)
-        top_row.addStretch(1)
-        top_row.addWidget(profile_pic)
-        profile_container.addLayout(top_row)
+        self.top_row.addWidget(notif_icon)
+        self.top_row.addStretch(1)
+        self.top_row.addWidget(user_name)
+        self.top_row.addStretch(1)
+        self.top_row.addWidget(self.profile_pic)
+        profile_container.addLayout(self.top_row)
         # Rank label below
         user_rank = QLabel('Rank: Grandmaster')
         user_rank.setStyleSheet(f'color: {theme.primary.name()}; font-size: 13px; margin-top: 8px;')
@@ -128,7 +149,15 @@ class DashboardRightPanel(QFrame):
         leaderboard_layout.setAlignment(Qt.AlignmentFlag.AlignBottom);
         right_panel_layout.addLayout(leaderboard_layout, Qt.AlignmentFlag.AlignBottom)
 
-        
-
         right_panel_layout.addStretch()
 
+    def profile_picture_fetched(self, filepath : str):
+        self.profile_image = QPixmap(filepath)
+        self.profile_pic.setPixmap(self.profile_image);
+        self.profile_pic.update()
+    
+    def upload_profile_picture(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Add a Profile Picture", "", "Images (*.svg *.jpeg *.png *.jpg)")
+        self.profile_picture_fetched(file_path);
+        with open(file_path, 'rb') as file:
+            response = requests.post(SERVER_URL + "profile/picture", files={'file': file, "json" : json.dumps({"user_id" : self.user_id})})

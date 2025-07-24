@@ -19,11 +19,12 @@ from dashboard.mini_games_cards import PopularCards, GamesCards
 from dashboard.sidebar import DashboardRightPanel, DashboardSidebar
 from dashboard.search import DashboardSearchbar
 from dashboard.files import DashboardFiles
+from dashboard.challenges import ChallengesCards
 from theming.theme import theme
 from utils import get_project_root
 
 class DashboardScreen(QWidget):
-    def __init__(self, username="Guest"):
+    def __init__(self, username="Guest", user_id="Guest"):
         super().__init__()
         self.setAutoFillBackground(True);
         self.setStyleSheet(f'background-color: {theme.background_alternative.name()}; border-radius : 25px')  # Darker background for main window
@@ -31,6 +32,7 @@ class DashboardScreen(QWidget):
         self.sidebar_icons = []
         self.selection_mode = False
         self.username = username;
+        self.user_id = user_id;
 
         init_db()
         self.files_layout = QVBoxLayout()  # Ensure this is always defined
@@ -63,7 +65,7 @@ class DashboardScreen(QWidget):
         games_label = QLabel('Games')
         games_label.setStyleSheet(f'color: {theme.text.name()}; font-size: 15px; font-weight: bold; margin-top: 24px; margin-bottom: 8px;')
         home_layout.addWidget(games_label)
-        self.games_cards = GamesCards(GAMES);
+        self.games_cards = ChallengesCards();
         home_layout.addWidget(self.games_cards)
         home_layout.addStretch()
         # Wrap the home_inner in a vertical scroll area
@@ -110,7 +112,7 @@ class DashboardScreen(QWidget):
         # main_layout.addWidget(self.content_stack, stretch=2) # This line is removed
 
         # Right panel
-        self.right_panel = DashboardRightPanel(self.username);
+        self.right_panel = DashboardRightPanel(self.username, self.user_id);
 
         # Add widgets to main layout in correct order
         main_layout.addWidget(self.sidebar)

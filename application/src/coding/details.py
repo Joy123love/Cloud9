@@ -8,3 +8,5 @@ class ChallengeDetails:
     starting : str
     statements : dict[str, int]
     checks : list[str]
+    id : int = 0
+    username : str = "Guest"
