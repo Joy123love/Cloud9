@@ -70,7 +70,6 @@ class PlayCodingGameScreen(QWidget):
 
     def run(self, details : ChallengeDetails):
         details.username = self.details.username
-        print(details);
         routes.open_coding_play(details)
 
 

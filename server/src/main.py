@@ -142,7 +142,6 @@ def get_coding_challenges():
     return jsonify({'challenges': challenges_json}), 200
 @app.route("/coding", methods=["POST"])
 def create_coding_challenge():
-    print(request.json);
     data = request.get_json()
     name = data.get("name")
     user_id = data.get("user_id")
@@ -193,6 +192,17 @@ def get_coding_challenge():
 
 
     return jsonify({"id" : id, 'name': challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "description" : challenge.user_id, "starting" : challenge.starting, "statements" : statements_json, "checks" : checks_json}), 200
+
+@app.route('/coding/completed', methods=['POST'])
+def completed_coding_challenge():
+    data = request.get_json()
+    challenge_id = data.get('id')
+    challenge = CodingChallenges.query.filter_by(id=challenge_id).first();
+    
+    if not challenge:
+        return jsonify({'message': 'Challenge not found'}), 404
+
+    return update_users_points(challenge.points, data.get('user_id'), data.get('email'))
 
 if __name__ == "__main__":
     create_tables()
