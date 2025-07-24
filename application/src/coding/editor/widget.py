@@ -5,7 +5,7 @@ from PyQt6 import QtWidgets
 
 from .limits import Limits;
 from .lexer import CustomLexer; 
-from typing import Any
+from typing import Any, Optional
 from theming.theme import theme;
 from theming.font import font;
 from PyQt6.Qsci import (QsciScintilla);
@@ -59,7 +59,7 @@ class CodeEditor(QsciScintilla):
         self.setIndentationGuides(True)
         self.setReadOnly(False)
     
-    def run(self, limits : Limits = Limits()) -> dict[str, Any]|None:
+    def run(self, limits : Limits = Limits()) -> Optional[dict[str, Any]]:
         validity = limits.is_valid(self.text());
 
         if validity is None:
