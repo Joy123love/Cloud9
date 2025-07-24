@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import QDockWidget, QHBoxLayout, QLabel, QListWidget, QList
 from coding.editor.widget import font, theme
 
 class PlayMenu(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, run, *args, **kwargs):
         super().__init__(*args, **kwargs);
         layout = QHBoxLayout();
         
@@ -21,4 +21,5 @@ class PlayMenu(QWidget):
         layout.setDirection(QHBoxLayout.Direction.RightToLeft)
         layout.setContentsMargins(0,0,0,0)
         
+        self.run.mousePressEvent = lambda e : run();
         self.setLayout(layout);

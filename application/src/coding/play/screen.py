@@ -1,6 +1,7 @@
+from PyQt6 import QtWidgets
 from PyQt6.QtCore import QThread, Qt, pyqtSignal
 from PyQt6.QtGui import QPalette
-from PyQt6.QtWidgets import QMainWindow, QVBoxLayout, QWidget
+from PyQt6.QtWidgets import QMainWindow, QMessageBox, QVBoxLayout, QWidget
 from huggingface_hub.inference._generated.types.base import dataclass_with_extra
 import requests
 
@@ -52,7 +53,7 @@ class PlayCodingGameScreen(QWidget):
         self.setAutoFillBackground(True);
 
         editor_layout = QVBoxLayout();
-        self.menu = PlayMenu();
+        self.menu = PlayMenu(self.run_editor);
         editor_layout.addWidget(self.menu);
         self.editor = CodeEditor("Loading...");
         editor_layout.addWidget(self.editor);
@@ -66,6 +67,47 @@ class PlayCodingGameScreen(QWidget):
             self.cthread.start();
 
         self.editor.setText(details.starting);
+
+    def run_editor(self):
+        if not self.details:
+            return
+
+        locals = self.editor.run(limits=Limits(self.details.statements));
+        incorrect = []
+        for check in self.details.checks:
+            try:
+                correct = eval(check, locals);
+                if type(correct) is bool:
+                    if correct:
+                        continue;
+            except:
+                incorrect.append(check)
+            incorrect.append(check)
+        
+        if len(incorrect) > 0:
+            from authentication.login import show_messagebox
+            show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Error", f"Failed evaluation checks : {incorrect}")
+            return;
+
+        import routes;
+        id, _ = routes.get_user()
+        json = {"id" : self.details.id, "user_id" : int(id)};
+
+        response = requests.post(
+            SERVER_URL + "coding",
+            json=json,
+            timeout=5
+        )
+
+        if response.status_code == 200:
+            QMessageBox.information(self, "Success", "Finished Challenge")
+            if routes.open_dashboard:
+                routes.open_dashboard()
+
+        else:
+            msg = response.json().get('message', 'Creation failed.')
+            QMessageBox.warning(self, "Failed", msg)
+
 
 
     def run(self, details : ChallengeDetails):

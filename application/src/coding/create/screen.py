@@ -1,3 +1,4 @@
+from PyQt6 import QtWidgets
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QMainWindow, QMessageBox, QVBoxLayout, QWidget
@@ -63,5 +64,20 @@ class CreateCodingGameScreen(QWidget):
         if self.editor.tab.currentIndex() == 0:
             self.editor.start_editor.run()
         else:
-            self.editor.solution_editor.run();
+            locals = self.editor.solution_editor.run(limits=Limits(self.sidebar.bottom.statements.get_statements()));
+            incorrect = [];
+            for check in self.details.checks:
+                try:
+                    correct = eval(check, locals);
+                    if type(correct) is bool:
+                        if correct:
+                            continue;
+                except:
+                    incorrect.append(check)
+                incorrect.append(check)
+            
+            if len(incorrect) > 0:
+                from authentication.login import show_messagebox
+                show_messagebox(self, QtWidgets.QMessageBox.Icon.Warning, "Error", f"Failed evaluation checks : {incorrect}")
+                return;
 
