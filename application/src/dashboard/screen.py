@@ -138,7 +138,6 @@ class DashboardScreen(QWidget):
                 widget.deleteLater()
         self.search_bar.search_row.addWidget(self.search_bar.search_box)
         self.search_bar.search_row.addStretch(1)
-        file_count = len(self.files.file_rects)
         if not self.selection_mode:
             # Normal mode: select and add-file icons
             if file_count > 0:

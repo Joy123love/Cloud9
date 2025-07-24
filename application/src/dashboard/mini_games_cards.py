@@ -4,21 +4,15 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QImage, QPixmap
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QScrollArea, QSizePolicy, QWidget
 
+from dashboard.banner import BannerFrame
 from utils import get_project_root
 
-class PopularCard(QFrame):
+class PopularCard(BannerFrame):
     def __init__(self, name : str, func, image : str, *args, **kwargs):
-        super().__init__(*args, **kwargs);
-        self.image_path = f"{get_project_root()}/src/assets/images/{image}"
-
+        super().__init__(f"{get_project_root()}/src/assets/images/{image}", 0, *args, **kwargs);
         self.setMinimumSize(140, 160)
         self.setStyleSheet('background-color: rgba(117,178,222,0.15); border-radius: 18px;')
         self.mousePressEvent = partial(func);
-        card_label = QLabel("", self)
-        self.image = QPixmap(self.image_path).scaledToHeight(self.height())
-        card_label.setPixmap(self.image);
-        card_label.setStyleSheet('color: #fff; font-size: 16px; font-weight: bold;')
-        card_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         label = QLabel(name, self)
         label.setStyleSheet('color: #fff; font-size: 16px; font-weight: bold;')
@@ -45,19 +39,13 @@ class PopularCards(QWidget):
             scroll_layout.addWidget(card)
 
         self.setLayout(scroll_layout)
-class GameCard(QFrame):
+class GameCard(BannerFrame):
     def __init__(self, name : str, func, image, *args, **kwargs):
-        super().__init__(*args, **kwargs);
-        self.image_path = f"{get_project_root()}/src/assets/images/{image}"
+        super().__init__(f"{get_project_root()}/src/assets/images/{image}", 0, *args, **kwargs);
         self.setMinimumSize(140, 220)
-        self.setMaximumSize(300, 300)
+        # self.setMaximumSize(300, 300)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet('background-color: rgba(117,178,222,0.10); border-radius: 14px;')
-        card_label = QLabel("", self)
-        self.image = QPixmap(self.image_path).scaledToHeight(self.height())
-        card_label.setPixmap(self.image);
-        card_label.setStyleSheet('color: #fff; font-size: 16px; font-weight: bold; border-radius: 14px')
-        card_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         vcard_label = QLabel(name, self)
         vcard_label.setStyleSheet('color: #fff; font-size: 15px; font-weight: bold;')
         vcard_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
