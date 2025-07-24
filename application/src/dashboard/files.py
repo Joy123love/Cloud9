@@ -69,7 +69,7 @@ class DashboardFiles(QWidget):
         import json
         import os
         import re
-        import requests
+        from huggingface_hub import InferenceClient
         # File extraction logic
         ext = os.path.splitext(file_path)[1].lower()
         if ext == '.pdf':
@@ -95,9 +95,9 @@ class DashboardFiles(QWidget):
         jsons_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../jsons"))
         os.makedirs(jsons_dir, exist_ok=True)
         json_path = os.path.join(jsons_dir, json_filename)
-        # DeepSeek API call
+        # HuggingFace InferenceClient (Mistral)
         HF_TOKEN = ""  # Use your own token
-        API_URL = "https://router.huggingface.co/v1/chat/completions"
+        MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
         prompt = (
             "Based on the following text, generate all quiz questions and their answers from the text. "
             "Output ONLY a valid JSON array of objects, each in the format: "
@@ -108,20 +108,13 @@ class DashboardFiles(QWidget):
             "Do not include any comments, explanations, or extra text—just the JSON array.\n"
             f"Text:\n{passage}\n"
         )
-        headers = {
-            "Authorization": f"Bearer {HF_TOKEN}",
-        }
-        payload = {
-            "messages": [
-                {"role": "user", "content": prompt}
-            ],
-            "model": "deepseek-ai/DeepSeek-R1:novita"
-        }
+        client = InferenceClient(api_key=HF_TOKEN)
         try:
-            resp = requests.post(API_URL, headers=headers, json=payload, timeout=60)
-            resp.raise_for_status()
-            data = resp.json()
-            result = data["choices"][0]["message"]["content"]
+            completion = client.chat.completions.create(
+                model=MODEL,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            result = completion.choices[0].message.content
         except Exception as e:
             print(f"[ERROR] AI question generation failed: {e}")
             return

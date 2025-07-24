@@ -121,8 +121,8 @@ class DashboardScreen(QWidget):
 
     def update_search_row_icons(self):
         def get_icon(path : str, func) -> QSvgWidget:
-            icon = QSvgWidget(path);
-            icon.setFixedSize(28, 28);
+            icon = QSvgWidget(path)
+            icon.setFixedSize(28, 28)
             icon.setStyleSheet('background: transparent; margin-right: 10px;')
             icon.mousePressEvent = func
             return icon
@@ -138,6 +138,7 @@ class DashboardScreen(QWidget):
                 widget.deleteLater()
         self.search_bar.search_row.addWidget(self.search_bar.search_box)
         self.search_bar.search_row.addStretch(1)
+        file_count = len(self.files.file_rects)  # <-- Ensure file_count is defined before use
         if not self.selection_mode:
             # Normal mode: select and add-file icons
             if file_count > 0:
