@@ -23,7 +23,7 @@ from theming.theme import theme
 from utils import get_project_root
 
 class DashboardScreen(QWidget):
-    def __init__(self, username="Guest"):
+    def __init__(self, username="Guest", user_id="Guest"):
         super().__init__()
         self.setAutoFillBackground(True);
         self.setStyleSheet(f'background-color: {theme.background_alternative.name()}; border-radius : 25px')  # Darker background for main window
@@ -31,6 +31,7 @@ class DashboardScreen(QWidget):
         self.sidebar_icons = []
         self.selection_mode = False
         self.username = username;
+        self.user_id = user_id;
 
         init_db()
         self.files_layout = QVBoxLayout()  # Ensure this is always defined
@@ -110,7 +111,7 @@ class DashboardScreen(QWidget):
         # main_layout.addWidget(self.content_stack, stretch=2) # This line is removed
 
         # Right panel
-        self.right_panel = DashboardRightPanel(self.username);
+        self.right_panel = DashboardRightPanel(self.username, self.user_id);
 
         # Add widgets to main layout in correct order
         main_layout.addWidget(self.sidebar)

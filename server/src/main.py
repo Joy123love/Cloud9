@@ -1,5 +1,5 @@
 import random
-from flask import Flask, Response, request, jsonify
+from flask import Flask, Response, json, request, jsonify, send_file
 from model_database import CodingChallenges, CodingChallengesChecks, CodingChallengesStatements, db, User
 from flask_cors import CORS
 from typing import Optional
@@ -49,6 +49,41 @@ def login():
     else:
         return jsonify({"error": "Invalid credentials"}), 401
 
+@app.route("/profile/picture", methods=["POST"])
+def set_profile_picture():
+    id = json.load(request.files["json"])["user_id"]
+    f = request.files["file"];
+    
+    if not f.filename:
+        return jsonify({"error": "Filename required"}), 401
+    
+    name = f"{get_project_root()}/src/profiles/{id}_{f.filename}";
+    
+    f.save(name)
+    user = User.query.filter_by(id=id).first()
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    user.profile_picture = name
+    db.session.commit()
+
+    return jsonify({'message': 'Points updated'}), 200
+
+@app.route("/profile/picture", methods=["GET"])
+def get_profile_picture():
+    data = request.get_json()
+    id = data.get("id")
+    user = User.query.filter_by(id=id).first()
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    if user.profile_picture :
+        return send_file(user.profile_picture), 200
+    else:
+        return jsonify({'message': 'User has no image'}), 401
+
 @app.route('/leaderboard', methods=['GET'])
 def get_leaderboard():
     users = User.query.order_by(User.points.desc()).all()
@@ -94,6 +129,50 @@ def update_users_points(new_points : int, id = None, email = None) -> tuple[Resp
         db.session.commit()
 
     return jsonify({'message': 'Points updated'}), 200
+
+@app.route('/coding/list', methods=['GET'])
+def get_coding_challenges():
+    challenges = CodingChallenges.query.all();
+    
+    challenges_json = [];
+    
+    for challenge in challenges:
+        challenges_json.append({"id" : challenge.id, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "points" : challenge.points})
+    
+    return jsonify({'challenges': challenges_json}), 200
+@app.route("/coding", methods=["POST"])
+def create_coding_challenge():
+    print(request.json);
+    data = request.get_json()
+    name = data.get("name")
+    user_id = data.get("user_id")
+    description = data.get("description")
+    starting = data.get("starting")
+    statements_json = data.get("statements")
+    checks_json = data.get("checks")
+
+    if CodingChallenges.query.filter_by(name=name, user_id=user_id).count() > 0:
+        return jsonify({"error": "User has already created this challenge"}), 409
+
+    id : int = CodingChallenges.query.count() + 1; 
+    db.session.add(CodingChallenges(id=id, name=name, user_id=user_id, description=description, starting=starting, points=0))
+
+    statements = [];
+    for statement in statements_json:
+        statements.append(CodingChallengesStatements(challenge_id=id, keyword=statement["keyword"], amount=statement["amount"]));
+    
+    checks = [];
+    for check in checks_json:
+        checks.append(CodingChallengesChecks(challenge_id=id, check=check));
+
+    db.session.add_all(statements);
+    db.session.add_all(checks);
+    db.session.commit();
+
+    return jsonify({"message": "Challenge successfully created"}), 200
+
+
+# import coding_challenges.server
 
 if __name__ == "__main__":
     create_tables()

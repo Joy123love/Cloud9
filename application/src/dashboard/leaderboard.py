@@ -165,8 +165,8 @@ class Leaderboard(QWidget):
     def update_ui_with_data(self):
         self.leaderboard_data.sort(key=lambda x: x.get("points", 0), reverse=True)
         self.populate_top_cards()
-        # self.populate_table()
-        self.show_leaderboard_text()
+        self.populate_table()
+        # self.show_leaderboard_text()
         # self.top_scroll.show()
         # self.table.show()
         self.search_input.setEnabled(True)

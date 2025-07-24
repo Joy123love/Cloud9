@@ -5,6 +5,9 @@ __pycache__
 /pycache/*
 **/pycache/*
 
+server/src/profiles/*
+**/leaderboard.json
+**/assets/user_data
 *.db
 **/user_data/*
 .idea/*
@@ -210,3 +213,4 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+leaderboard.json

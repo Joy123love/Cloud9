@@ -38,18 +38,22 @@ class CreateCodingGameScreen(QWidget):
         statements = [];
         for k, v in self.sidebar.bottom.statements.get_statements().items():
             statements.append({"keyword" : k, "amount" : v});
+        user_id, _ = routes.get_user()
+        json = {"name": self.sidebar.top.name.text(), "user_id" : user_id, "description": self.sidebar.top.description.toPlainText(), "starting" : self.editor.start_editor.text(), "checks" : self.sidebar.bottom.checks.get_checks(), "statements" : statements}
+
         response = requests.post(
             SERVER_URL + "coding",
-            json={"name": self.sidebar.top.name.text(), "user_id" : session.USER_ID, "description": self.sidebar.top.description.toPlainText(), "starting" : self.editor.start_editor.text(), "checks" : self.sidebar.bottom.checks.get_checks(), "statements" : statements},
+            json=json,
             timeout=5
         )
+
         if response.status_code == 200:
-            QMessageBox.information(self, "Success", "Logged in successfully!")
+            QMessageBox.information(self, "Success", "Created successfully")
             if routes.open_dashboard:
                 routes.open_dashboard()
 
         else:
-            msg = response.json().get('message', 'Login failed.')
+            msg = response.json().get('message', 'Creation failed.')
             QMessageBox.warning(self, "Failed", msg)
 
     def run(self):

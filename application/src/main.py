@@ -5,7 +5,7 @@ from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QApplication, QDockWidget, QMainWindow, QStackedWidget, QTabWidget, QWidget
 from coding.details import ChallengeDetails
 
-
+from utils import get_project_root
 from theming.theme import get_palette_from_theme, theme
 import routes
 from constants import *
@@ -30,6 +30,7 @@ class Screens(QStackedWidget):
         routes.open_coding_create = self.open_coding_create_screen
         routes.open_coding_play = self.open_coding_play_screen
         routes.set_user = self.set_user
+        routes.get_user = self.get_user
     
     def setup_screens(self):
         from authentication.login import LoginScreen
@@ -69,8 +70,8 @@ class Screens(QStackedWidget):
         # Launch the new Switch Runner game as a separate process
         script_path = os.path.abspath(
             os.path.join(
-                os.path.dirname(__file__),
-                "switch_runner/game.py"
+                get_project_root(),
+                "src/switch_runner/game.py"
             )
         )
         print(f"Launching Switch Runner at: {script_path}")
@@ -81,7 +82,7 @@ class Screens(QStackedWidget):
 
         self.dashboard.close();
         self.removeWidget(self.dashboard);
-        self.dashboard = DashboardScreen(self.username)
+        self.dashboard = DashboardScreen(self.username, str(self.user_id))
         self.insertWidget(MENU, self.dashboard)
         self.open_screen(MENU)
 
@@ -89,6 +90,9 @@ class Screens(QStackedWidget):
     def set_user(self, user_id : str, name : str):
         self.user_id = user_id;
         self.username = name;
+    
+    def get_user(self) -> tuple[str, str]:
+        return (str(self.user_id), self.username)
 
     def open_coding_play_screen(self, details : ChallengeDetails):
         from coding.play.sidebar import PlaySidebar

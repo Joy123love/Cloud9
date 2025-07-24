@@ -3,7 +3,7 @@ from flask import Flask, Response, request, jsonify
 from model_database import CodingChallenges, CodingChallengesChecks, CodingChallengesStatements, db, User
 from flask_cors import CORS
 
-from ..main import app, db, update_users_points, get_username
+from main import app, db, update_users_points, get_username
 
 @app.route('/coding/completed', methods=['POST'])
 def completed_coding_challenge():
@@ -27,40 +27,48 @@ def get_coding_challenges():
     
     return jsonify({'challenges': challenges_json}), 200
 
-@app.route("/coding", methods=["POST"])
-def create_coding_challenge():
-    data = request.get_json()
-    name = data.get("name")
-    user_id = data.get("user_id")
-    description = data.get("description")
-    starting = data.get("starting")
-    statements_json = data.get("statements")
-    checks_json = data.get("checks")
-
-    if CodingChallenges.query.filter_by(name=name, user_id=user_id).count() > 0:
-        return jsonify({"error": "User has already created this challenge"}), 409
-
-    db.session.add(CodingChallenges(name=name, user_id=user_id, description=description, starting=starting, points=0))
-    db.session.commit()
-
-    challenge = CodingChallenges.query.filter_by(user_id=user_id, name=name).first();
-
-    if not challenge:
-        return jsonify({'message': 'Unable to add challenge.'}), 404
-    
-    statements = [];
-    for statement in statements_json:
-        statements.append(CodingChallengesStatements(challenge_id=challenge.id, keyword=statement["keyword"], amount=statement["amount"]));
-    
-    checks = [];
-    for check in checks_json:
-        checks.append(CodingChallengesChecks(challenge_id=challenge.id, check=check));
-
-    db.session.add_all(statements);
-    db.session.add_all(checks);
-    db.session.commit();
-
-    return jsonify({"message": "Challenge successfully created"}), 201
+# @app.route("/coding", methods=["POST"])
+# def create_coding_challenge():
+#     print(request.json);
+#     data = request.get_json()
+#     print("1")
+#     name = data.get("name")
+#     user_id = data.get("user_id")
+#     print("1")
+#     description = data.get("description")
+#     starting = data.get("starting")
+#     print("1")
+#     statements_json = data.get("statements")
+#     checks_json = data.get("checks")
+#     print("1")
+#
+#     if CodingChallenges.query.filter_by(name=name, user_id=user_id).count() > 0:
+#         return jsonify({"error": "User has already created this challenge"}), 409
+#
+#     id : int = CodingChallenges.query.count() + 1; 
+#     db.session.add(CodingChallenges(id=id, name=name, user_id=user_id, description=description, starting=starting, points=0))
+#     # db.session.commit()
+#
+#     # challenge = CodingChallenges.query.filter_by(user_id=user_id, name=name).first();
+#     #
+#     #
+#     # if not challenge:
+#     #     return jsonify({'message': 'Unable to add challenge.'}), 404
+#
+#     statements = [];
+#     for statement in statements_json:
+#         statements.append(CodingChallengesStatements(challenge_id=id, keyword=statement["keyword"], amount=statement["amount"]));
+#     
+#     checks = [];
+#     for check in checks_json:
+#         checks.append(CodingChallengesChecks(challenge_id=id, check=check));
+#
+#     db.session.add_all(statements);
+#     db.session.add_all(checks);
+#     db.session.commit();
+#     # print(CodingChallenges.query.all())
+#
+#     return jsonify({"message": "Challenge successfully created"}), 200
 
 @app.route('/coding', methods=['GET'])
 def get_coding_challenge():

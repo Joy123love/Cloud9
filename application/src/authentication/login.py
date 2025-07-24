@@ -150,6 +150,7 @@ class LoginScreen(QWidget):
                 json={"email": email, "password": password},
                 timeout=5
             )
+
             if response.status_code == 200:
                 show_messagebox(self, QtWidgets.QMessageBox.Icon.Information, "Success", "Logged in successfully!")
 
