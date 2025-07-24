@@ -185,15 +185,14 @@ def get_coding_challenge():
     
     statements_json = [];
     for statement in statements:
-        statements_json.append(jsonify({"keyword" : statement.keyword, "amount" : statement.amount}))
+        statements_json.append({"keyword" : statement.keyword, "amount" : statement.amount})
     
     checks_json = [];
     for check in checks:
         checks_json.append(str(check.check))
 
 
-    return jsonify({"id" : id, 'name': challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "description" : challenge.user_id, "starting" : challenge.starting, "statements" : statements_json}) #, "checks" : checks_json}), 200
-# import coding_challenges.server
+    return jsonify({"id" : id, 'name': challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "description" : challenge.user_id, "starting" : challenge.starting, "statements" : statements_json, "checks" : checks_json}), 200
 
 if __name__ == "__main__":
     create_tables()

@@ -28,7 +28,7 @@ class SidebarTop(QWidget):
         self.username.setStyleSheet(f"color: {theme.primary.name()}")
         layout.addWidget(self.username);
 
-        self.description = QLabel(description);
+        self.description = QLabel(str(description));
         self.description.setFont(font.default);
         self.description.setStyleSheet(f"color: {theme.text.name()}")
         layout.addWidget(self.description);

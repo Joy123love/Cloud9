@@ -26,7 +26,6 @@ class FetchChallengeThread(QThread):
             response = requests.get(SERVER_URL + "coding", json={"id" : self.id}, timeout=5)
             if response.status_code == 200:
                 data = response.json()
-                print(data);
                 statements_json = data["statements"];
                 statements = {}
                 for statement in statements_json:
@@ -43,7 +42,6 @@ class FetchChallengeThread(QThread):
                     return
             self.failed.emit()
         except Exception:
-            print("inst");
             self.failed.emit()
 
 class PlayCodingGameScreen(QWidget):
