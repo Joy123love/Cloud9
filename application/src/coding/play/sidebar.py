@@ -14,7 +14,7 @@ class SidebarTop(QWidget):
         
         back = QPushButton();
         back.setIcon(icons.cancel);
-        back.setStyleSheet(f"color: {theme.danger.name()}")
+        back.setStyleSheet(f"background: {theme.danger.name()}")
         back.mousePressEvent = lambda e: routes.open_dashboard()
         layout.addWidget(back);
 

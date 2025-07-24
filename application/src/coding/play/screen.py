@@ -26,6 +26,7 @@ class FetchChallengeThread(QThread):
             response = requests.get(SERVER_URL + "coding", json={"id" : self.id}, timeout=5)
             if response.status_code == 200:
                 data = response.json()
+                print(data);
                 statements_json = data["statements"];
                 statements = {}
                 for statement in statements_json:
@@ -42,6 +43,7 @@ class FetchChallengeThread(QThread):
                     return
             self.failed.emit()
         except Exception:
+            print("inst");
             self.failed.emit()
 
 class PlayCodingGameScreen(QWidget):
@@ -61,7 +63,7 @@ class PlayCodingGameScreen(QWidget):
     def load(self, details : ChallengeDetails):
         self.details = details;
         if details.description == "":
-            self.cthread = FetchChallengeThread(id);
+            self.cthread = FetchChallengeThread(self.details.id);
             self.cthread.fetched.connect(self.run);
             self.cthread.start();
 
@@ -70,6 +72,7 @@ class PlayCodingGameScreen(QWidget):
 
     def run(self, details : ChallengeDetails):
         details.username = self.details.username
+        print(details);
         routes.open_coding_play(details)
 
 

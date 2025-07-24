@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import QDockWidget, QFrame, QHBoxLayout, QLabel, QListWidge
 
 from assets.icons import icons
 from widgets.text.line import LineTextEdit
-
+import routes
 from coding.editor.widget import font, theme
 from coding.details import ChallengeDetails
 
@@ -13,6 +13,12 @@ class SidebarTop(QWidget):
         super().__init__(*args, **kwargs);
         layout = QVBoxLayout();
 
+        back = QPushButton();
+        back.setIcon(icons.cancel);
+        back.setStyleSheet(f"background: {theme.danger.name()}")
+        back.mousePressEvent = lambda e: routes.open_dashboard()
+        layout.addWidget(back);
+        
         self.name = LineTextEdit(name, font = font.heading, height = 50);
         self.name.setStyleSheet(f"color: {theme.secondary.name()}; background: {theme.background_alternative.name()};")
         layout.addWidget(self.name);

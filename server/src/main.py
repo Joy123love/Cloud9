@@ -172,6 +172,27 @@ def create_coding_challenge():
     return jsonify({"message": "Challenge successfully created"}), 200
 
 
+@app.route('/coding', methods=['GET'])
+def get_coding_challenge():
+    data = request.get_json()
+    id = data.get('id')
+    challenge = CodingChallenges.query.filter_by(id=id).first();
+    statements = CodingChallengesStatements.query.filter_by(challenge_id=id).all()
+    checks = CodingChallengesChecks.query.filter_by(challenge_id=id).all()
+    
+    if not challenge:
+        return jsonify({'message': 'Challenge not found'}), 404
+    
+    statements_json = [];
+    for statement in statements:
+        statements_json.append(jsonify({"keyword" : statement.keyword, "amount" : statement.amount}))
+    
+    checks_json = [];
+    for check in checks:
+        checks_json.append(str(check.check))
+
+
+    return jsonify({"id" : id, 'name': challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "description" : challenge.user_id, "starting" : challenge.starting, "statements" : statements_json}) #, "checks" : checks_json}), 200
 # import coding_challenges.server
 
 if __name__ == "__main__":
