@@ -137,7 +137,7 @@ def get_coding_challenges():
     challenges_json = [];
     
     for challenge in challenges:
-        challenges_json.append({"id" : challenge.id, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "points" : challenge.points})
+        challenges_json.append({"id" : challenge.id, "name" : challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "points" : challenge.points})
     
     return jsonify({'challenges': challenges_json}), 200
 @app.route("/coding", methods=["POST"])

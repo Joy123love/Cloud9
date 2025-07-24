@@ -13,7 +13,6 @@ class FetchProfilePictureThread(QThread):
         super().__init__(*args, **kwargs);
 
     def run(self):
-        print(f"Running {self.id}");
         default = f"{get_project_root()}src/assets/icons/account.svg";
         try:
             response = requests.get(SERVER_URL + "profile/picture", json={"id" : self.id}, timeout=5, stream=True)

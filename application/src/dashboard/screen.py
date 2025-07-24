@@ -19,6 +19,7 @@ from dashboard.mini_games_cards import PopularCards, GamesCards
 from dashboard.sidebar import DashboardRightPanel, DashboardSidebar
 from dashboard.search import DashboardSearchbar
 from dashboard.files import DashboardFiles
+from dashboard.challenges import ChallengesCards
 from theming.theme import theme
 from utils import get_project_root
 
@@ -64,7 +65,7 @@ class DashboardScreen(QWidget):
         games_label = QLabel('Games')
         games_label.setStyleSheet(f'color: {theme.text.name()}; font-size: 15px; font-weight: bold; margin-top: 24px; margin-bottom: 8px;')
         home_layout.addWidget(games_label)
-        self.games_cards = GamesCards(GAMES);
+        self.games_cards = ChallengesCards();
         home_layout.addWidget(self.games_cards)
         home_layout.addStretch()
         # Wrap the home_inner in a vertical scroll area

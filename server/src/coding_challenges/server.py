@@ -90,4 +90,4 @@ def get_coding_challenge():
         checks_json.append(check.check)
 
 
-    return jsonify({'name': challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=id), "description" : challenge.user_id, "starting" : challenge.starting, "statements" : statements_json, "checks" : checks_json}), 200
+    return jsonify({"id" : challenge.id, 'name': challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=id), "description" : challenge.user_id, "starting" : challenge.starting, "statements" : statements_json, "checks" : checks_json}), 200
