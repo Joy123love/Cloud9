@@ -154,12 +154,15 @@ def create_coding_challenge():
         return jsonify({"error": "User has already created this challenge"}), 409
 
     id : int = CodingChallenges.query.count() + 1; 
-    db.session.add(CodingChallenges(id=id, name=name, user_id=user_id, description=description, starting=starting, points=0))
 
-    statements = [];
+
+    statements : list[CodingChallengesStatements]= [];
+    points = 0;
     for statement in statements_json:
         statements.append(CodingChallengesStatements(challenge_id=id, keyword=statement["keyword"], amount=statement["amount"]));
+        points += int(statement["amount"])
     
+    db.session.add(CodingChallenges(id=id, name=name, user_id=user_id, description=description, starting=starting, points=points))
     checks = [];
     for check in checks_json:
         checks.append(CodingChallengesChecks(challenge_id=id, check=check));
