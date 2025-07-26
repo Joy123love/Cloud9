@@ -158,7 +158,7 @@ class SwitchRunnerGame():
         self.spikes_frames = [spikes_sheet.subsurface(pygame.Rect(i * spikes_width, 0, spikes_width, spikes_height)) for i in range(SPIKES_FRAMES)]
 
     def ai_check_answer(self, question, correct_answer, user_answer):
-        HF_TOKEN = "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"  # Paste your Hugging Face API token here
+        HF_TOKEN = ""  # Paste your Hugging Face API token here
         API_URL = "https://router.huggingface.co/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {HF_TOKEN}",

@@ -96,7 +96,7 @@ class DashboardFiles(QWidget):
         os.makedirs(jsons_dir, exist_ok=True)
         json_path = os.path.join(jsons_dir, json_filename)
         # HuggingFace InferenceClient (Mistral)
-        HF_TOKEN = "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"  # Paste your Hugging Face API token here
+        HF_TOKEN = ""  # Paste your Hugging Face API token here
         MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
         prompt = (
             "Based on the following text, generate 5-10 quiz questions and their answers. "
