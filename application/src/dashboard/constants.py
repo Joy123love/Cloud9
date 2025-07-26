@@ -15,6 +15,6 @@ GAMES = [
         {
             "name" : "Flappy Learn", 
             "func" : lambda e: routes.open_flappy_learn(),
-            "image" : "Runner.png",  # You can replace this with a custom image later
+            "image" : "basketbird.png",  # You can replace this with a custom image later
         },
 ];

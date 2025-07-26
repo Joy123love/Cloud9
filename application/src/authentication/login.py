@@ -5,7 +5,7 @@ from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtWidgets import QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit
 import os
 import requests
-import routes
+import application.src.routes
 # from dashboard import DashboardWindow
 import platform
 
@@ -13,6 +13,8 @@ from assets.icons import icons
 from theming.theme import theme
 
 from .styles import STYLES
+import routes
+
 
 def show_messagebox(parent, icon, title, text):
     if platform.system() == "Windows":
@@ -144,7 +146,7 @@ class LoginScreen(QWidget):
             return
 
         try:
-            from constants import SERVER_URL
+            from application.src.constants import SERVER_URL
             response = requests.post(
                 SERVER_URL + "login",
                 json={"email": email, "password": password},

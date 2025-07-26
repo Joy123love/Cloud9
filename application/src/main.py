@@ -13,6 +13,7 @@ import sys
 import subprocess
 import os
 
+
 class Screens(QStackedWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);
@@ -72,6 +73,7 @@ class Screens(QStackedWidget):
     
     def open_switch_runner(self):
         # Launch the new Switch Runner game as a separate process
+
         script_path = os.path.abspath(
             os.path.join(
                 get_project_root(),
