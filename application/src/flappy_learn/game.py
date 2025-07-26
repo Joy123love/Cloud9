@@ -4,6 +4,7 @@ import os
 import math
 import random
 import time
+import requests
 
 # Settings
 WIDTH, HEIGHT = 800, 600
@@ -602,7 +603,18 @@ while True:
             screen.blit(line_surf, (WIDTH//2 - line_surf.get_width()//2, HEIGHT//2 + i*55))
 
     if game_over:
-        # Game over overlay
+        try: 
+            SERVER_URL="http://127.0.0.1:5000/"
+            response = requests.post(
+                SERVER_URL + "points",
+                json={"id" : 1, "points" : score},
+                timeout=5
+            )
+        except:
+            args = sys.argv;
+            print(f"failed {args}")
+            pass
+        # Game oover overlay
         over_bg = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
         over_bg.fill((0, 0, 0, 180))
         screen.blit(over_bg, (0, 0))

@@ -29,14 +29,16 @@ class FetchChallengeThread(QThread):
                 data = response.json()
                 statements_json = data["statements"];
                 statements = {}
-                for statement in statements_json:
-                    statements[statement["keyword"]] = statement["amount"]
+                if statements_json:
+                    for statement in statements_json:
+                        statements[statement["keyword"]] = statement["amount"]
                 checks_json = data["statements"];
                 checks = []
-                for check in checks_json:
-                    checks.append(check)
+                if checks_json:
+                    for check in checks_json:
+                        checks.append(check)
 
-                details = ChallengeDetails(data["name"], data["user_id"], data["description"], data["starting"], statements, checks)
+                details = ChallengeDetails(data["name"], data["user_id"], data["description"], data["starting"], statements, checks, self.id)
 
                 if data:
                     self.fetched.emit(details)
@@ -72,17 +74,19 @@ class PlayCodingGameScreen(QWidget):
         if not self.details:
             return
 
-        locals = self.editor.run(limits=Limits(self.details.statements));
+        locals = self.editor.run(limits=Limits());#self.details.statements));
         incorrect = []
-        for check in self.details.checks:
+        """for check in self.details.checks:
             try:
                 correct = eval(check, locals);
                 if type(correct) is bool:
                     if correct:
                         continue;
             except:
-                incorrect.append(check)
-            incorrect.append(check)
+                pass
+                #incorrect.append(check)
+            #incorrect.append(check)
+        """
         
         if len(incorrect) > 0:
             from authentication.login import show_messagebox
@@ -91,10 +95,10 @@ class PlayCodingGameScreen(QWidget):
 
         import routes;
         id, _ = routes.get_user()
-        json = {"id" : self.details.id, "user_id" : int(id)};
+        json = {"id" : int(self.details.id), "user_id" : int(id)};
 
         response = requests.post(
-            SERVER_URL + "coding",
+            SERVER_URL + "coding/completed",
             json=json,
             timeout=5
         )

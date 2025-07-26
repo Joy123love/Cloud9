@@ -2,6 +2,7 @@ import sys
 from PyQt6.QtWidgets import QWidget
 import subprocess
 import os
+import routes
 
 class FlappyLearnScreen(QWidget):
     def __init__(self):
@@ -16,4 +17,5 @@ class FlappyLearnScreen(QWidget):
             )
         )
         print(f"Launching Flappy Learn (from screen.py) at: {script_path}")
-        subprocess.Popen([sys.executable, script_path]) 
+        id, _ = routes.get_user();
+        subprocess.Popen([sys.executable, script_path, id]) 

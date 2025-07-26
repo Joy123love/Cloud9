@@ -30,12 +30,13 @@ class FetchChallengesThread(QThread):
             self.failed.emit()
 
 class ChallengeCard(BannerFrame):
-    def __init__(self, name : str, username: str, points : str, func, *args, **kwargs):
+    def __init__(self, name : str, username: str, points : str, details, *args, **kwargs):
         super().__init__(f"{get_project_root()}/src/assets/images/Coding.png", 0.3, *args, **kwargs);
         self.setMinimumSize(140, 220)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setStyleSheet('background-color: rgba(117,178,222,0.10); border-radius: 14px;')
-        self.mousePressEvent = partial(func);
+        self.details = details
+        self.mousePressEvent = lambda e: routes.open_coding_play(self.details);
         layout = QVBoxLayout();
 
         vcard_label = QLabel(name, self)
@@ -80,8 +81,8 @@ class ChallengesCards(QWidget):
             vcard = ChallengeCard(
                 game["name"], 
                 game["username"], 
-                str(game["points"]), 
-                lambda e: routes.open_coding_play(ChallengeDetails(id = int(game["id"]), name=game["name"], user_id=game["user_id"], description="", starting="", statements={}, checks=[]))
+                str(game["points"]),
+                ChallengeDetails(id = int(game["id"]), name=game["name"], user_id=game["user_id"], description="", starting="", statements={}, checks=[])
             )
             row = i // num_columns
             col = i % num_columns

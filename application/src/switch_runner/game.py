@@ -607,6 +607,17 @@ class SwitchRunnerGame():
                     screen.blit(self.life_img, (x - 30, y - 30))
             # Game over
             if self.game_over:
+                try: 
+                    SERVER_URL="http://127.0.0.1:5000/"
+                    response = requests.post(
+                        SERVER_URL + "points",
+                        json={"id" : 1, "points" : self.xp},
+                        timeout=5
+                    )
+                except:
+                    args = sys.argv;
+                    print(f"failed {args}")
+                    pass
                 # If death animation is playing, wait for it to finish
                 if self.death_anim_playing:
                     pygame.display.flip()

@@ -125,7 +125,7 @@ def update_users_points(new_points : int, id = None, email = None) -> tuple[Resp
 
 
     if new_points > user.points:
-        user.points = new_points
+        user.points += new_points
         db.session.commit()
 
     return jsonify({'message': 'Points updated'}), 200
@@ -158,14 +158,16 @@ def create_coding_challenge():
 
     statements : list[CodingChallengesStatements]= [];
     points = 0;
-    for statement in statements_json:
-        statements.append(CodingChallengesStatements(challenge_id=id, keyword=statement["keyword"], amount=statement["amount"]));
-        points += int(statement["amount"])
+    if statements_json:
+        for statement in statements_json:
+            statements.append(CodingChallengesStatements(challenge_id=id, keyword=statement["keyword"], amount=statement["amount"]));
+            points += int(statement["amount"])
     
     db.session.add(CodingChallenges(id=id, name=name, user_id=user_id, description=description, starting=starting, points=points))
     checks = [];
-    for check in checks_json:
-        checks.append(CodingChallengesChecks(challenge_id=id, check=check));
+    if checks_json:
+        for check in checks_json:
+            checks.append(CodingChallengesChecks(challenge_id=id, check=check));
 
     db.session.add_all(statements);
     db.session.add_all(checks);
@@ -186,12 +188,14 @@ def get_coding_challenge():
         return jsonify({'message': 'Challenge not found'}), 404
     
     statements_json = [];
-    for statement in statements:
-        statements_json.append({"keyword" : statement.keyword, "amount" : statement.amount})
+    if statements:
+        for statement in statements:
+            statements_json.append({"keyword" : statement.keyword, "amount" : statement.amount})
     
     checks_json = [];
-    for check in checks:
-        checks_json.append(str(check.check))
+    if checks:
+        for check in checks:
+            checks_json.append(str(check.check))
 
 
     return jsonify({"id" : id, 'name': challenge.name, "user_id" : challenge.user_id, "username" : get_username(id=challenge.user_id), "description" : challenge.user_id, "starting" : challenge.starting, "statements" : statements_json, "checks" : checks_json}), 200
