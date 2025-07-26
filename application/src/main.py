@@ -95,6 +95,7 @@ class Screens(QStackedWidget):
 
     def set_user(self, user_id : str, name : str):
         self.user_id = user_id;
+        os.environ["uid9"] = user_id;
         self.username = name;
     
     def get_user(self) -> tuple[str, str]:

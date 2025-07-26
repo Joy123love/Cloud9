@@ -15,7 +15,7 @@ ASSETS_DIR = os.path.join(SCRIPT_DIR, '../assets/games/flappy_learn')  # New ass
 # Define border and divider thickness for drawing
 BORDER_THICKNESS = 60
 DIVIDER_THICKNESS = 8
-
+ADDED = False;
 # Define ring size constants before hoop setup
 RING_WIDTH = 110
 RING_HEIGHT = 75
@@ -604,12 +604,14 @@ while True:
 
     if game_over:
         try: 
-            SERVER_URL="http://127.0.0.1:5000/"
-            response = requests.post(
-                SERVER_URL + "points",
-                json={"id" : 1, "points" : score},
-                timeout=5
-            )
+            if not ADDED:
+                SERVER_URL="http://127.0.0.1:5000/"
+                response = requests.post(
+                    SERVER_URL + "points",
+                    json={"id" : 1, "points" : score},
+                    timeout=5
+                )
+                ADDED = True
         except:
             args = sys.argv;
             print(f"failed {args}")
@@ -624,7 +626,8 @@ while True:
         font_small = pygame.font.SysFont(None, 32)
         replay_text = font_small.render("Press SPACE to replay or close to exit", True, (255, 255, 0))
         screen.blit(replay_text, (WIDTH//2 - replay_text.get_width()//2, HEIGHT//2 + 32))
-
+    else:
+        ADDED = False
     # Draw thick brown border (top and bottom only)
     BORDER_COLOR = (139, 69, 19)
     # Top border

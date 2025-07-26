@@ -10,7 +10,7 @@ import routes
 from theming.theme import theme
 
 from .styles import STYLES
-from application.src.assets.icons import icons
+from assets.icons import icons
 import routes
 
 
@@ -140,7 +140,7 @@ class SignUpScreen(QWidget):
 
         # Send to backend
         try:
-            from application.src.constants import SERVER_URL
+            from constants import SERVER_URL
             response = requests.post(
                 SERVER_URL + "register",
                 json={

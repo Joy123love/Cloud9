@@ -5,7 +5,7 @@ from PyQt6.QtGui import QPixmap, QIcon
 from PyQt6.QtWidgets import QWidget, QGridLayout, QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit
 import os
 import requests
-import application.src.routes
+import routes
 # from dashboard import DashboardWindow
 import platform
 
@@ -146,7 +146,7 @@ class LoginScreen(QWidget):
             return
 
         try:
-            from application.src.constants import SERVER_URL
+            from constants import SERVER_URL
             response = requests.post(
                 SERVER_URL + "login",
                 json={"email": email, "password": password},
@@ -158,7 +158,7 @@ class LoginScreen(QWidget):
 
                 if routes.open_dashboard:
                     if routes.set_user:
-                        routes.set_user(response.json().get('id', 0), response.json().get('username', email.split('@')[0]))
+                        routes.set_user(str(response.json().get('id', 0)), response.json().get('username', email.split('@')[0]))
                     routes.open_dashboard()
             else:
                 msg = response.json().get('message', 'Login failed.')

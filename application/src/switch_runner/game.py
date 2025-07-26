@@ -43,6 +43,7 @@ class SwitchRunnerGame():
         self.entity_decision_time = 0
         self.ai_thread = None
         self.ai_result = None
+        self.added = False;
         self.next_question_time = time.time() + random.choice(MATH_INTERVALS)
         # Play background music
         music_path = os.path.normpath(os.path.join(os.path.dirname(__file__), '../assets/audio/Lukrembo.mp3'))
@@ -608,12 +609,15 @@ class SwitchRunnerGame():
             # Game over
             if self.game_over:
                 try: 
-                    SERVER_URL="http://127.0.0.1:5000/"
-                    response = requests.post(
-                        SERVER_URL + "points",
-                        json={"id" : 1, "points" : self.xp},
-                        timeout=5
-                    )
+                    if not self.added:
+                        print(self.xp);
+                        SERVER_URL="http://127.0.0.1:5000/"
+                        response = requests.post(
+                            SERVER_URL + "points",
+                            json={"id" : int(os.environ["uid9"]), "points" : self.xp},
+                            timeout=5
+                        )
+                        self.added = True
                 except:
                     args = sys.argv;
                     print(f"failed {args}")
@@ -631,6 +635,8 @@ class SwitchRunnerGame():
                         if event.type == pygame.QUIT:
                             running = False
                     continue
+            else:
+                self.added = False;
             # Draw XP
             xp_surf = font.render(f'XP: {self.xp}', True, (255, 255, 100))
             screen.blit(xp_surf, (40, 40))
