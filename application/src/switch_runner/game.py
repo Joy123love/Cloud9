@@ -158,7 +158,7 @@ class SwitchRunnerGame():
         self.spikes_frames = [spikes_sheet.subsurface(pygame.Rect(i * spikes_width, 0, spikes_width, spikes_height)) for i in range(SPIKES_FRAMES)]
 
     def ai_check_answer(self, question, correct_answer, user_answer):
-        HF_TOKEN = ""  # Paste your Hugging Face API token here
+        HF_TOKEN = "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"  # Paste your Hugging Face API token here
         API_URL = "https://router.huggingface.co/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {HF_TOKEN}",
@@ -181,11 +181,75 @@ class SwitchRunnerGame():
             data = resp.json()
             content = data["choices"][0]["message"]["content"]
             if content.lower().startswith("yes"):
-                return True, content
-            return False, content
+                return True, "Correct!"
+            return False, f"Wrong! The answer is {correct_answer}"
         except Exception as e:
             print(f"[ERROR] AI check failed: {e}")
-            return False, f"AI check failed: {e}"
+            return False, f"Wrong! The answer is {correct_answer} (AI check failed)"
+
+    def generate_math_question(self):
+        """Generate a random math question when no JSON questions are available"""
+        import random
+        import operator
+        
+        # Define operations and their symbols
+        operations = {
+            '+': operator.add,
+            '-': operator.sub,
+            '*': operator.mul,
+            '/': operator.truediv
+        }
+        
+        # Choose operation (avoid division for simplicity)
+        op_symbol = random.choice(['+', '-', '*'])
+        op_func = operations[op_symbol]
+        
+        # Generate numbers based on operation
+        if op_symbol == '+':
+            a = random.randint(1, 50)
+            b = random.randint(1, 50)
+        elif op_symbol == '-':
+            a = random.randint(10, 100)
+            b = random.randint(1, a)  # Ensure positive result
+        else:  # multiplication
+            a = random.randint(2, 12)
+            b = random.randint(2, 12)
+        
+        # Calculate answer
+        answer = op_func(a, b)
+        
+        # Format question
+        question = f"What is {a} {op_symbol} {b}?"
+        
+        return {"question": question, "answer": str(int(answer))}
+
+    def check_math_answer(self, question, correct_answer, user_answer):
+        """Check math answer without AI - simple string comparison"""
+        try:
+            # Try to convert user answer to number for comparison
+            user_num = float(user_answer.strip())
+            correct_num = float(correct_answer.strip())
+            if abs(user_num - correct_num) < 0.01:  # Allow small floating point differences
+                return True, "Correct!"
+            else:
+                return False, f"Wrong! The answer is {correct_answer}"
+        except ValueError:
+            # If conversion fails, do string comparison
+            if user_answer.strip().lower() == correct_answer.strip().lower():
+                return True, "Correct!"
+            else:
+                return False, f"Wrong! The answer is {correct_answer}"
+
+    def check_json_answer_locally(self, question, correct_answer, user_answer):
+        """Check JSON answer locally without AI - case-insensitive string comparison"""
+        # Clean and normalize both answers
+        user_clean = user_answer.strip().lower()
+        correct_clean = correct_answer.strip().lower()
+        
+        if user_clean == correct_clean:
+            return True, "Correct!"
+        else:
+            return False, f"Hahahahahah wrong answer! The correct answer is {correct_answer}"
 
     # Remove math_encounter_trigger and all uses of self.math_mode, self.math_question, self.math_options, etc.
 
@@ -204,18 +268,26 @@ class SwitchRunnerGame():
             # Question encounter trigger
             if not self.story_mode and not self.question_mode and not self.game_over and self.now > self.next_question_time:
                 self.question_mode = True
-                # Pick a random question from a random JSON file in jsons/
-                json_files = glob.glob(os.path.join('jsons', '*.json'))
-                if not json_files:
-                    self.question_data = {"question": "No questions available.", "answer": ""}
+                # Use absolute path for jsons directory
+                json_dir = os.path.join(os.path.dirname(__file__), '../jsons')
+                json_files = glob.glob(os.path.join(json_dir, '*.json'))
+                valid_questions = []
+                for chosen_file in json_files:
+                    try:
+                        with open(chosen_file, 'r', encoding='utf-8') as f:
+                            questions = json.load(f)
+                        if isinstance(questions, list) and questions:
+                            valid_questions.extend(questions)
+                    except Exception as e:
+                        print(f"[ERROR] Could not load questions from {chosen_file}: {e}")
+                        continue
+                if valid_questions:
+                    self.question_data = random.choice(valid_questions)
+                    self.is_math_question = False
                 else:
-                    chosen_file = random.choice(json_files)
-                    with open(chosen_file, 'r', encoding='utf-8') as f:
-                        questions = json.load(f)
-                    if questions:
-                        self.question_data = random.choice(questions)
-                    else:
-                        self.question_data = {"question": "No questions in file.", "answer": ""}
+                    # Generate a math question as fallback
+                    self.question_data = self.generate_math_question()
+                    self.is_math_question = True
                 self.user_text = ''
                 self.question_feedback = ''
                 self.question_feedback_timer = 0
@@ -267,16 +339,23 @@ class SwitchRunnerGame():
                     checking_surf = checking_font.render('Checking answer...', True, (180, 180, 220))
                     screen.blit(checking_surf, (WIDTH//2 - checking_surf.get_width()//2, rect_y + rect_h + 20))
                 elif self.show_entity_decision:
-                    # Show Correct or Wrong answer. Hahahah!
+                    # Show Correct or Wrong answer with the actual feedback
                     result_font = pygame.font.SysFont('arial', 54, bold=True)
                     if self.question_feedback.startswith('Correct'):
                         result_text = 'Correct!'
                         color = (80, 220, 120)
+                        # For correct answers, render normally since it's short
+                        rsurf = result_font.render(result_text, True, color)
+                        screen.blit(rsurf, (WIDTH//2 - rsurf.get_width()//2, rect_y + rect_h + 40))
                     else:
-                        result_text = 'Wrong answer. Hahahah!'
+                        # Use the actual feedback which contains the correct answer
+                        result_text = self.question_feedback
                         color = (255, 99, 71)
-                    rsurf = result_font.render(result_text, True, color)
-                    screen.blit(rsurf, (WIDTH//2 - rsurf.get_width()//2, rect_y + rect_h + 40))
+                        # Wrap the long answer text to fit screen width
+                        result_lines = wrap_text(result_text, result_font, WIDTH - 100)  # Leave 50px margin on each side
+                        for i, line in enumerate(result_lines):
+                            rsurf = result_font.render(line.strip(), True, color)
+                            screen.blit(rsurf, (WIDTH//2 - rsurf.get_width()//2, rect_y + rect_h + 40 + i*60))
                 elif self.question_feedback:
                     color = (80, 220, 120) if self.question_feedback.startswith('Correct') else (255, 99, 71)
                     fsurf = font.render(self.question_feedback, True, color)
@@ -295,9 +374,14 @@ class SwitchRunnerGame():
                         else:
                             if len(self.user_text) < 60 and event.unicode.isprintable():
                                 self.user_text += event.unicode
-                # If answer_checking, do the AI call
+                # If answer_checking, do the answer check (AI disabled for demo)
                 if self.answer_checking and self.ai_result is None:
-                    is_correct, ai_msg = self.ai_check_answer(self.question_data['question'], self.question_data['answer'], self.user_text)
+                    if self.is_math_question:
+                        is_correct, ai_msg = self.check_math_answer(self.question_data['question'], self.question_data['answer'], self.user_text)
+                    else:
+                        # Use local case-insensitive check for JSON questions (AI disabled for demo)
+                        print(f"[INFO] Using local case-insensitive check for JSON question")
+                        is_correct, ai_msg = self.check_json_answer_locally(self.question_data['question'], self.question_data['answer'], self.user_text)
                     if is_correct:
                         self.question_feedback = 'Correct!'
                     else:

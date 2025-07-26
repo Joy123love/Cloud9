@@ -31,6 +31,7 @@ class Screens(QStackedWidget):
         routes.open_coding_play = self.open_coding_play_screen
         routes.set_user = self.set_user
         routes.get_user = self.get_user
+        routes.open_flappy_learn = self.open_flappy_learn
     
     def setup_screens(self):
         from authentication.login import LoginScreen
@@ -52,6 +53,9 @@ class Screens(QStackedWidget):
         from switch_runner.screen import SwitchRunnerScreen
         self.switch_runner = SwitchRunnerScreen()
         self.addWidget(self.switch_runner)
+        from flappy_learn.screen import FlappyLearnScreen
+        self.flappy_learn = FlappyLearnScreen()
+        self.addWidget(self.flappy_learn)
 
     def open_screen(self, index : int):
         if self.dock is None:
@@ -120,6 +124,17 @@ class Screens(QStackedWidget):
 
         window.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock);
     
+    def open_flappy_learn(self):
+        # Launch the new Flappy Learn game as a separate process
+        script_path = os.path.abspath(
+            os.path.join(
+                get_project_root(),
+                "src/flappy_learn/game.py"
+            )
+        )
+        print(f"Launching Flappy Learn at: {script_path}")
+        subprocess.Popen([sys.executable, script_path])
+
 class ExtraMainScreen(QMainWindow):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs);

@@ -11,5 +11,10 @@ GAMES = [
             "name" : "Switch Runner", 
             "func" : lambda e: routes.open_switch_runner(),
             "image" : "Runner.png",
-        }
+        },
+        {
+            "name" : "Flappy Learn", 
+            "func" : lambda e: routes.open_flappy_learn(),
+            "image" : "Runner.png",  # You can replace this with a custom image later
+        },
 ];

@@ -1,0 +1,50 @@
+[
+  {
+    "question": "What is Python?",
+    "answer": "A versatile language that is loved by beginners and professionals alike due to its simplicity and readability."
+  },
+  {
+    "question": "What is the primary use of JavaScript?",
+    "answer": "This is primarily a front-end programming language used for making web pages interactive."
+  },
+  {
+    "question": "What is Java used for?",
+    "answer": "A general-purpose programming language that is often used for developing robust and large-scale applications."
+  },
+  {
+    "question": "What does C++ extend from?",
+    "answer": "C++ extends from C."
+  },
+  {
+    "question": "What is C# primarily used for?",
+    "answer": "Pronounced C-Sharp, this is Microsoft's programming language. It is used in the development of Windows desktop applications and games."
+  },
+  {
+    "question": "What is the use of Python, JavaScript, Java, C++, and C# in one sentence?",
+    "answer": "Python is simple and readable (all around), JavaScript is for interactive web pages (front end), Java is used for developing robust and large-scale applications (back end), C++ is for systems programming with extra features, and C# is Microsoft's language for Windows applications and games (Microsoft, Windows)."
+  },
+  {
+    "question": "Which language, used primarily for making web pages interactive, is this: JavaScript?",
+    "answer": "Yes"
+  },
+  {
+    "question": "Among these languages, which is developed by Microsoft: C#?",
+    "answer": "Yes"
+  },
+  {
+    "question": "What can C++ be used for after being extended from another language, C?",
+    "answer": "Systems programming with extra features"
+  },
+  {
+    "question": "A general-purpose language that is often used for developing robust and large-scale applications is: Java. True or False?",
+    "answer": "True"
+  },
+  {
+    "question": "Python, which is loved by beginners and professionals alike, can be categorized as ________.",
+    "answer": "All around (since the question asks for one categorization)"
+  },
+  {
+    "question": "In the given table, find out the language that's used in web developing and what category it belongs to: JavaScript, Front end.",
+    "answer": "Yes"
+  }
+]

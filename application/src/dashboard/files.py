@@ -96,17 +96,24 @@ class DashboardFiles(QWidget):
         os.makedirs(jsons_dir, exist_ok=True)
         json_path = os.path.join(jsons_dir, json_filename)
         # HuggingFace InferenceClient (Mistral)
-        HF_TOKEN = ""  # Paste your Hugging Face API token here
+        HF_TOKEN = "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"  # Paste your Hugging Face API token here
         MODEL = "mistralai/Mistral-7B-Instruct-v0.3"
         prompt = (
-            "Based on the following text, generate all quiz questions and their answers from the text. "
-            "Output ONLY a valid JSON array of objects, each in the format: "
-            '{"question": "This is the question", "answer": "This is the answer"}.\n'
-            "If there is more than one answer, concatenate them into a single string separated by ' and ' in the 'answer' field. Do not use arrays for answers.\n"
-            "If the answer you produce is part of the text in the question remove it from the text in the question. "
-            "Do not output a question without an answer. "
-            "Do not include any comments, explanations, or extra text—just the JSON array.\n"
-            f"Text:\n{passage}\n"
+            "Based on the following text, generate 5-10 quiz questions and their answers. "
+            "Output ONLY a valid JSON array of objects with this EXACT format: "
+            '{"question": "What is the question here?", "answer": "The exact answer here"}.\n'
+            "IMPORTANT RULES:\n"
+            "1. Use ONLY double quotes for all strings\n"
+            "2. Escape any quotes within text with backslash\n"
+            "3. If there are multiple answers, join them with ' and '\n"
+            "4. Do not use arrays for answers - only strings\n"
+            "5. Do not include any comments, explanations, or extra text\n"
+            "6. Start with [ and end with ]\n"
+            "7. Separate objects with commas\n"
+            "8. Ensure all property names are in double quotes\n"
+            "Example format:\n"
+            '[{"question": "What is cricket?", "answer": "A sport played with bat and ball"}, {"question": "How many players in a cricket team?", "answer": "11 players"}]\n'
+            f"Text to generate questions from:\n{passage}\n"
         )
         client = InferenceClient(api_key=HF_TOKEN)
         try:
@@ -119,7 +126,49 @@ class DashboardFiles(QWidget):
             print(f"[ERROR] AI question generation failed: {e}")
             return
         def clean_json_output(text):
+            # Remove comments and clean up the text
             text = re.sub(r'//.*', '', text)
+            text = re.sub(r'/\*.*?\*/', '', text, flags=re.DOTALL)
+            
+            # Try to find JSON array pattern first
+            array_match = re.search(r'\[(.*)\]', text, re.DOTALL)
+            if array_match:
+                array_content = array_match.group(1)
+                # Split by object boundaries more carefully
+                objects = []
+                brace_count = 0
+                current_obj = ""
+                
+                for char in array_content:
+                    current_obj += char
+                    if char == '{':
+                        brace_count += 1
+                    elif char == '}':
+                        brace_count -= 1
+                        if brace_count == 0:
+                            # Complete object found
+                            obj_clean = current_obj.strip()
+                            if obj_clean.startswith('{') and obj_clean.endswith('}'):
+                                objects.append(obj_clean)
+                            current_obj = ""
+                
+                if objects:
+                    # Try to parse as a proper JSON array
+                    try:
+                        json_str = '[' + ','.join(objects) + ']'
+                        qa_list = json.loads(json_str)
+                        for qa in qa_list:
+                            ans = qa.get('answer')
+                            if isinstance(ans, list):
+                                qa['answer'] = ' and '.join(str(a) for a in ans)
+                            elif ans is not None:
+                                qa['answer'] = str(ans)
+                        return qa_list
+                    except Exception as e:
+                        print(f'Error parsing JSON array: {e}')
+                        print(f'Attempted JSON: {json_str[:200]}...')
+            
+            # Fallback: try to find individual objects
             objects = re.findall(r'{[^{}]*}', text, re.DOTALL)
             if objects:
                 json_str = '[{}]'.format(','.join(objects))
@@ -135,17 +184,32 @@ class DashboardFiles(QWidget):
                     return qa_list
                 except Exception as e:
                     print(f'Error parsing cleaned JSON: {e}')
+                    print(f'Attempted JSON: {json_str[:200]}...')
                     return []
             else:
                 print('Could not parse JSON objects from model output.')
+                print(f'Raw output: {text[:500]}...')
                 return []
         try:
             qa_list = clean_json_output(result)
         except Exception as e:
             print(f'Error parsing JSON: {e}')
             qa_list = []
+        
+        # If no questions were generated, create a basic template
+        if not qa_list:
+            print("[WARNING] No questions generated, creating basic template")
+            qa_list = [
+                {
+                    "question": f"Sample question about {base}",
+                    "answer": "Sample answer - please edit this file manually"
+                }
+            ]
+        
         with open(json_path, 'w', encoding='utf-8') as f:
             json.dump(qa_list, f, indent=2, ensure_ascii=False)
+        
+        print(f"[SUCCESS] Created {len(qa_list)} questions in {json_filename}")
         add_file_to_db(json_filename)
         self.refresh_file_list()
 
@@ -180,9 +244,14 @@ class DashboardFiles(QWidget):
     def delete_file(self, filename):
         import os;
         delete_file_from_db(filename)
-        file_path = os.path.join('jsons', filename)
+        # Use the same absolute path as when creating the file
+        jsons_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../jsons"))
+        file_path = os.path.join(jsons_dir, filename)
         if os.path.exists(file_path):
             os.remove(file_path)
+            print(f"[INFO] Deleted file: {file_path}")
+        else:
+            print(f"[WARNING] File not found: {file_path}")
         self.refresh_file_list()
 
     def enter_selection_mode(self):

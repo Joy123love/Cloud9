@@ -17,3 +17,4 @@ open_login : Optional[Callable[[], None]] = None;
 open_coding_create : Optional[Callable[[ChallengeDetails], None]] = None;
 open_coding_play : Optional[Callable[[ChallengeDetails], None]] = None;
 open_switch_runner : Optional[Callable[[], None]] = None;
+open_flappy_learn : Optional[Callable[[], None]] = None;

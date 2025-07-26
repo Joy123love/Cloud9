@@ -50,6 +50,7 @@ class GameCard(BannerFrame):
         vcard_label.setStyleSheet('color: #fff; font-size: 15px; font-weight: bold;')
         vcard_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         vcard_label.setGeometry(0, 100, 140, 40)
+        self.mousePressEvent = partial(func);
 
 class GamesCards(QWidget):
     def __init__(self, games : list[dict[str, Any]], *args, **kwargs):

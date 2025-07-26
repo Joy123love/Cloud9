@@ -118,8 +118,7 @@ class DashboardRightPanel(QFrame):
         user_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         # Profile picture (circle placeholder)
         self.profile_pic = QLabel()
-        self.profile_pic.setMinimumSize(60, 60)
-        self.profile_pic.setMaximumSize(120, 120);
+        self.profile_pic.setFixedSize(60, 60)
         self.profile_pic.setStyleSheet(f'background-color: {theme.danger.name()}; border-radius: 30px; border: 2px solid {theme.text.name()};')
         self.profile_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.profile_pic.mousePressEvent = lambda e: self.upload_profile_picture();
